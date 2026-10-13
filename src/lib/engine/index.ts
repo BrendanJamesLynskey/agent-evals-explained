@@ -19,6 +19,12 @@ export type Obj = { [k: string]: any }; // eslint-disable-line @typescript-eslin
 export type Chapter = keyof typeof CONFIGS;
 export const CHAPTER_CONFIGS = CONFIGS as unknown as Record<Chapter, Obj>;
 
+/** Chapters too heavy to compute in the page (chapter 4 reruns six benchmarks with bootstraps and
+ * sums exact coverage; about a second of main-thread work on a slow phone): the widget loads them from
+ * src/data/precomputed.json, which scripts/precompute.ts writes with this same function and
+ * tests/unit/precomputed.test.ts checks. */
+export const PRECOMPUTED: Chapter[] = ["uncertainty"];
+
 /** Everything one chapter animates (and quotes). */
 export function runChapter(chapter: Chapter): Obj {
   const St = E.study;

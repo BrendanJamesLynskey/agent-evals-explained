@@ -74,6 +74,7 @@ pnpm vendor:engine <commit>                 # copies the files, writes VENDORED.
 # pin the same commit in reference/requirements.txt, then
 .venv/bin/pip install -r reference/requirements.txt
 .venv/bin/python scripts/make_fixtures.py   # the site's fixtures and src/data/swe.json, from the reference
+pnpm precompute                             # src/data/precomputed.json (chapter 4, from the TS engine)
 pnpm test && .venv/bin/python -m pytest -q tests/python
 ```
 

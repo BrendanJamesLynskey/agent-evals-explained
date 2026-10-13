@@ -131,7 +131,7 @@ function Swe({
               key={i}
               data-call={i}
               data-shown={i < shownCalls ? "true" : "false"}
-              className={`rounded px-1 font-mono ${i < shownCalls ? "text-neutral-800 dark:text-neutral-200" : "text-neutral-300 dark:text-neutral-700"} ${f.stage === "agent" && f.call === i ? "ring-2 ring-indigo-500" : ""}`}
+              className={`rounded px-1 font-mono ${i < shownCalls ? "text-neutral-800 dark:text-neutral-200" : "text-neutral-500 dark:text-neutral-400"} ${f.stage === "agent" && f.call === i ? "ring-2 ring-indigo-500" : ""}`}
             >
               {i + 1}. {c.name}
               {c.args.path

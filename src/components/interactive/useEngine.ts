@@ -2,9 +2,9 @@
 
 /**
  * Everything a chapter animates, computed by the vendored engine in the browser, after the page
- * loads, in the widget's own code-split chunk; results are cached per chapter. The evals module is
- * plain arithmetic: the heaviest chapter (the benchmark repeated six ways, with bootstraps) takes
- * well under a second.
+ * loads, in the widget's own code-split chunk; results are cached per chapter. Chapter 4 (the
+ * benchmark rerun six ways with bootstraps, and exact coverage sums) loads the same engine's output
+ * from src/data/precomputed.json instead (tests/unit/precomputed.test.ts).
  */
 import { useEffect, useState } from "react";
 
@@ -20,7 +20,12 @@ const cache = new Map<Chapter, Promise<Obj>>();
 export function loadChapter(chapter: Chapter): Promise<Obj> {
   let p = cache.get(chapter);
   if (!p) {
-    p = import("@/lib/engine").then((E) => E.runChapter(chapter));
+    p =
+      chapter === "uncertainty"
+        ? import("@/data/precomputed.json").then(
+            (m) => (m.default as Obj)[chapter] as Obj,
+          )
+        : import("@/lib/engine").then((E) => E.runChapter(chapter));
     cache.set(chapter, p);
   }
   return p;
