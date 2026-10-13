@@ -9,7 +9,9 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import HARNESS from "@/data/harness.json";
 import SWE from "@/data/swe.json";
+import TRAJ from "@/data/trajectory.json";
 import {
   CHAPTER_CONFIGS,
   E,
@@ -25,6 +27,9 @@ const fx = JSON.parse(
 const efx = JSON.parse(
   readFileSync(join(ROOT, "tests/fixtures/evals_fixtures.json"), "utf8"),
 ) as Obj;
+const e2 = JSON.parse(
+  readFileSync(join(ROOT, "tests/fixtures/evals2_fixtures.json"), "utf8"),
+) as Obj;
 
 describe("every chapter equals the Python reference", () => {
   for (const ch of Object.keys(CHAPTER_CONFIGS) as Chapter[])
@@ -36,6 +41,33 @@ describe("chapter 2's frames are the engine's own", () => {
     for (const [k, a] of Object.entries(SWE as Obj))
       expect(a).toEqual(efx.swe[k]);
     expect(Object.keys(SWE)).toHaveLength(6);
+  });
+});
+
+describe("chapters 7, 8 and 10 are the engine's own", () => {
+  it("trajectory.json equals the engine's fixtures", () =>
+    expect(TRAJ).toEqual(e2.trajectory));
+  it("harness.json equals the engine's fixtures", () => {
+    const h = HARNESS as Obj;
+    const sc = e2.scaffold as Obj;
+    expect(h.configs).toEqual(sc.configs);
+    expect(h.rows).toEqual(sc.rows);
+    expect(h.spread).toEqual(sc.spread);
+    expect(h.describe).toEqual(sc.describe);
+    expect(h.paired).toEqual(sc.paired);
+    expect(h.examples).toEqual(sc.examples);
+  });
+  it("chapter 10's costs equal the engine's", () =>
+    expect(JSON.parse(JSON.stringify(runChapter("cost").cost))).toEqual(
+      e2.cost,
+    ));
+  it("chapters 6 and 9 equal the engine's fixtures", () => {
+    expect(JSON.parse(JSON.stringify(runChapter("judge").study))).toEqual(
+      e2.judge,
+    );
+    expect(JSON.parse(JSON.stringify(runChapter("contamination")))).toEqual(
+      e2.contamination,
+    );
   });
 });
 
@@ -97,5 +129,43 @@ describe("key frames", () => {
       expect(last.se_paired).toBeLessThan(0.9 * last.se_unpaired);
       expect(last.corr).toBeGreaterThan(0);
     }
+  });
+  it("chapter 6: swapping the order exposes position bias", () => {
+    const st = runChapter("judge").study.settings as Obj;
+    expect(st.position.first_share).toBeGreaterThan(0.6);
+    expect(st.fair.first_share).toBeLessThan(0.55);
+    expect(st.position.consistency).toBeLessThan(st.fair.consistency);
+    expect(st.position.accuracy_decided).toBeGreaterThan(st.position.accuracy1);
+  });
+  it("chapter 7: the recorded ReAct run claims success it did not reach", () => {
+    const rows = (runChapter("trajectory").rows as Obj[]).reduce(
+      (a: Obj, r: Obj) => ({ ...a, [r.id]: r }),
+      {},
+    );
+    expect(rows["qwen-react"].grades).toEqual({
+      outcome: false,
+      self_report: true,
+      trajectory: false,
+    });
+    expect(rows.cleanup.grades.trajectory).toBe(false);
+    expect(rows.fix.grades.trajectory).toBe(true);
+  });
+  it("chapter 8: with a shell and more turns the smaller model passes the larger one without", () => {
+    const by = runChapter("harness").configs as Obj[];
+    const r = (id: string) => by.find((c) => c.id === id)!.rate as number;
+    expect(r("small|test|native|16")).toBeGreaterThan(r("large|edit|native|4"));
+    expect(r("small|test|native|16")).toBeGreaterThan(r("small|edit|native|4"));
+  });
+  it("chapter 9: n-grams catch verbatim leaks and miss paraphrases", () => {
+    const lv = runChapter("contamination").levels as Obj;
+    for (const v of Object.values(lv) as Obj[]) {
+      expect(v.flagged_verbatim).toBe(v.verbatim);
+      expect(v.flagged_paraphrased).toBeLessThanOrEqual(1);
+    }
+    expect(lv["0.60"].rate).toBeGreaterThan(lv["0.00"].rate);
+  });
+  it("chapter 10: the best configuration is on the Pareto front", () => {
+    const c = runChapter("cost").cost as Obj;
+    expect(c.front).toContain(c.best);
   });
 });

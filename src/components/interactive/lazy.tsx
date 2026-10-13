@@ -51,3 +51,30 @@ export const SampleSizeCalc = dynamic(() => import("./SampleSizeCalc"), {
   ssr: false,
   loading: loading("calculator"),
 });
+export const JudgeWidget = dynamic(() => import("./JudgeWidget"), {
+  ssr: false,
+  loading: loading("animation"),
+});
+export const CorrectionChart = dynamic(() => import("./CorrectionChart"), {
+  ssr: false,
+  loading: loading("chart"),
+});
+export const TrajectoryWidget = dynamic(() => import("./TrajectoryWidget"), {
+  ssr: false,
+  loading: loading("animation"),
+});
+export const HarnessWidget = dynamic(() => import("./HarnessWidget"), {
+  ssr: false,
+  loading: loading("animation"),
+});
+export const ContaminationWidget = dynamic(
+  () => import("./ContaminationWidget"),
+  {
+    ssr: false,
+    loading: loading("animation"),
+  },
+);
+export const CostWidget = dynamic(() => import("./CostWidget"), {
+  ssr: false,
+  loading: loading("animation"),
+});

@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/BrendanJamesLynskey/Agent_Loop_Sim",
-  "commit": "eb9f3cb9bb5c9e23530d22c2ad5ae6c7976f63a7",
-  "committed": "2026-10-13T18:37:29+01:00",
+  "commit": "2b556e50f028a7bf620ab0673393eeb0dfb37998",
+  "committed": "2026-10-13T20:34:26+01:00",
   "files": {
     "src/lib/engine/vendor/accounting.ts": {
       "from": "ts/src/accounting.ts",
@@ -69,7 +69,11 @@
     },
     "src/lib/engine/vendor/engine_data.json": {
       "from": "ts/src/engine_data.json",
-      "sha256": "af53685d6b387ba8fd45d1d84854ac344af78aa0b4a413423570ae49974bdd6c"
+      "sha256": "1c1a469db5a34a4f852534bd3a88436188ef4983c81941ab4b2021b12028dfec"
+    },
+    "src/lib/engine/vendor/evals/contamination.ts": {
+      "from": "ts/src/evals/contamination.ts",
+      "sha256": "9b4f2d4e763ae7b2a0238978fd9e430f66c7220f70c35b09217ee7b6253e034d"
     },
     "src/lib/engine/vendor/evals/generator.ts": {
       "from": "ts/src/evals/generator.ts",
@@ -77,15 +81,23 @@
     },
     "src/lib/engine/vendor/evals/index.ts": {
       "from": "ts/src/evals/index.ts",
-      "sha256": "4adf38d967d8f677777befbb4a422299436d4b98796d03f20daa93fc10f95008"
+      "sha256": "6db6416d4ee55c8a0feb5717ab454a44e4b63cc69f5f996429db975a4ec2aa7f"
+    },
+    "src/lib/engine/vendor/evals/judge.ts": {
+      "from": "ts/src/evals/judge.ts",
+      "sha256": "d554443b6ed0869681614d2165fa6df300253e6f05d9240c4d9ec247ed22f279"
     },
     "src/lib/engine/vendor/evals/mathx.ts": {
       "from": "ts/src/evals/mathx.ts",
       "sha256": "4da3bf95f15ec5a33b8db588f4be290210a545989930b85db6cc99e697d1e136"
     },
+    "src/lib/engine/vendor/evals/scaffold.ts": {
+      "from": "ts/src/evals/scaffold.ts",
+      "sha256": "97379909d40808ea392f89437543438f5f702131ac23698281f19f41e59b164b"
+    },
     "src/lib/engine/vendor/evals/stats.ts": {
       "from": "ts/src/evals/stats.ts",
-      "sha256": "613d1b3a2bbc894157a6839ce491e12d40552b73d0f7af9322a072fcb842f2ec"
+      "sha256": "aafb6b9c910632165d8c76dd13dab1f0872c9f22fc3ec57b1d1473a2dfd8d797"
     },
     "src/lib/engine/vendor/evals/study.ts": {
       "from": "ts/src/evals/study.ts",
@@ -95,9 +107,17 @@
       "from": "ts/src/evals/swe.ts",
       "sha256": "d12a944b0c26350e6be62f74792ef390a0ebf2302bb9da81f5e13155c4fbf31a"
     },
+    "src/lib/engine/vendor/evals/trajectory.ts": {
+      "from": "ts/src/evals/trajectory.ts",
+      "sha256": "794bd241d4dbcaf15e92b3f4a1213ab4f847b1d4e1a02756cc1349b1932222e9"
+    },
+    "src/lib/engine/vendor/evals2_data.json": {
+      "from": "ts/src/evals2_data.json",
+      "sha256": "2b20d8a2c003a1217584c0b904e030266be40331be30cb265784e7ac8c0c58d6"
+    },
     "src/lib/engine/vendor/evals_data.json": {
       "from": "ts/src/evals_data.json",
-      "sha256": "4e3df2447d0cf6a70348f2914f84d8d23e055f7d028d9ad28ece10d478d60148"
+      "sha256": "204929fde2c9b6c63370b90691c5c7320589309b224f17c5519748ef1fa25d60"
     },
     "src/lib/engine/vendor/harness.ts": {
       "from": "ts/src/harness.ts",
@@ -149,7 +169,7 @@
     },
     "src/lib/engine/vendor/orchestration_data.json": {
       "from": "ts/src/orchestration_data.json",
-      "sha256": "adbcdb0c4c3be988dc784d4f5b2a4e1e180e669cacf878850b7fa0d53f046abc"
+      "sha256": "dddf6419953ce27dab8fd926b37c93658bf5abfd8c94bc90f61fe9314a0e3957"
     },
     "src/lib/engine/vendor/parse.ts": {
       "from": "ts/src/parse.ts",
@@ -197,7 +217,7 @@
     },
     "src/lib/engine/vendor/protocols_data.json": {
       "from": "ts/src/protocols_data.json",
-      "sha256": "569c108198aec5acb6755721cb18f5af9f27208090bb41e6512d16c1d3db3687"
+      "sha256": "6969c08407dc33d72ca97887271ffb0d8b2071bc2fbf03d6c2ed1d530ed34051"
     },
     "src/lib/engine/vendor/rng.ts": {
       "from": "ts/src/rng.ts",
@@ -221,11 +241,31 @@
     },
     "tests/fixtures/evals_fixtures.json": {
       "from": "fixtures/evals_fixtures.json",
-      "sha256": "266feb4400f326c4b95d94c9e44030851690196bd77b9ead478b35d748dd247b"
+      "sha256": "5142cd530e9f4287ae8381dfbf5798c4a1166f06218012e0be48c3c9fb1c2407"
     },
     "src/data/evals_results.md": {
       "from": "fixtures/evals_results.md",
-      "sha256": "3531dd8d79981eebdfacb3d262b51e094229f8429b77d15eb72fc93cc3ab39b8"
+      "sha256": "75aae04ab7f05083ec3c64ff33fdc0f680ba2f5e5c2462ce4f6f948b664c7eb1"
+    },
+    "tests/fixtures/evals2_fixtures.json": {
+      "from": "fixtures/evals2_fixtures.json",
+      "sha256": "01f099a710c80c619161634d051690ac14ea73461b4be8884df9c663d895ec50"
+    },
+    "src/data/evals2_results.md": {
+      "from": "fixtures/evals2_results.md",
+      "sha256": "e05a0c2fb2cb2f6f1d08194547b47cd481748be8e4a70b790f53579719237158"
+    },
+    "reference/traces/qwen-fix-test-native.json": {
+      "from": "traces/qwen-fix-test-native.json",
+      "sha256": "f7b5bbd00edf085ab598794a8ae55fe489a04fbd2368881bcfd6f1e8094d0a3b"
+    },
+    "reference/traces/qwen-fix-test-react.json": {
+      "from": "traces/qwen-fix-test-react.json",
+      "sha256": "89ebacc6b426b8548a1ff493c11974f925bb1960c06079e3699eb3c4466a165e"
+    },
+    "reference/traces/qwen-lookup-native.json": {
+      "from": "traces/qwen-lookup-native.json",
+      "sha256": "11bb336160c560fc70074b2eb6b4e98ba4a96fc45b279de3b16c1c6f200861b5"
     }
   }
 }

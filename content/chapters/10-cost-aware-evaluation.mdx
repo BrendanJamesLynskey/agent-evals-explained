@@ -1,0 +1,62 @@
+<CostWidget>
+  <Eq
+    label="Dollars per solved task is the cost per task over the success rate. Configuration i is on the Pareto front when no configuration j costs no more and succeeds no less, with one of the two strictly"
+    tex="\begin{gathered} \htmlClass{hl-solved}{\frac{\$}{\text{solved}} = \frac{\bar c}{\hat p}} \\ \htmlClass{hl-front}{i \in \text{front} \iff \nexists\, j:\ c_j \le c_i,\ p_j \ge p_i,\ (c_j, p_j) \ne (c_i, p_i)} \end{gathered}"
+  />
+</CostWidget>
+
+<Layer kind="concept">
+
+A success rate without a cost is half a result. An agent that resolves a few more tasks by running ten times as long, or by calling a model that costs five times as much per token, may be the wrong choice; and two agents that score the same may differ several-fold in what each solved task costs. A cost-aware evaluation puts every configuration on a plane, **cost per task** against **success rate**, and asks which ones are worth considering at all.
+
+The animation does that for chapter 8's sixteen configurations: two models (priced at <V of="consts.prices.small.input" fmt="num" /> and <V of="consts.prices.small.output" fmt="num" /> dollars per million input and output tokens, and at <V of="consts.prices.large.input" fmt="num" /> and <V of="consts.prices.large.output" fmt="num" />), with or without a shell, native calls or ReAct text, 4 to 16 turns. Every cost is the harness's own accounting of the tokens each run used. The points arrive cheapest first, and the line is the **Pareto front**: the configurations that nothing else beats on both cost and success. <V of="cx.n_front" fmt="int" /> of the sixteen are on it.
+
+**Off the front.** The larger model without a shell resolves <V of="px.large|edit|native|4.rate" fmt="pct1" /> of runs at <V of="px.large|edit|native|4.cost" fmt="usd" /> a task. The smaller model with a shell, ReAct calls and 8 turns resolves <V of="px.small|test|react|8.rate" fmt="pct1" /> for <V of="px.small|test|react|8.cost" fmt="usd" />: as many, for less. No budget makes the first a sensible choice.
+
+**Cheapest per solved task is not the answer either.** The smaller model with no shell has the lowest cost per solved task, <V of="px.small|edit|native|4.per_solved" fmt="usd" />, because it gives up after one edit; it also resolves only <V of="px.small|edit|native|4.rate" fmt="pct1" />. The highest success, <V of="px.large|test|native|16.rate" fmt="pct1" />, costs <V of="px.large|test|native|16.per_solved" fmt="usd" /> per solved task. Which point to pick depends on what an unsolved task costs you: a person's time to do it by hand, a customer who leaves. Put that price on the chart and the choice follows.
+
+**More turns cost more per solved task here.** For the smaller model with a shell, going from 8 to 16 turns lifts the rate from <V of="px.small|test|native|8.rate" fmt="pct1" /> to <V of="px.small|test|native|16.rate" fmt="pct1" />, and the cost per solved task from <V of="px.small|test|native|8.per_solved" fmt="usd" /> to <V of="px.small|test|native|16.per_solved" fmt="usd" />. The runs that are still failing at 8 turns are mostly the ones where the model has misread the task, and they spend the extra turns failing (chapter 8's maths), on prompts that grow with every turn.
+
+**The front is an estimate.** Each point has an interval (the vertical lines), and on <V of="hx.small|test|native|16.n" fmt="int" /> runs neighbouring points overlap: some configurations are on the front because of the draw. Pareto fronts from small benchmarks should be read with the intervals, not as a ranking.
+
+</Layer>
+
+<Callout kind="illustrative">
+
+The prices are list prices of two real API models, dated in the engine's price table and used only as two price points: the skills attached to them are invented, so nothing here says how either real model would score. Token counts are the harness's, from Qwen2.5's tokenizer; the prompt cache is the engine's simple prefix model. Real agents also spend on retrieval, tool calls and wall-clock time, which this chart leaves out.
+
+</Callout>
+
+<Layer kind="maths">
+
+**Dollars per solved task.** With mean cost $\bar c$ per task and success rate $\hat p$, the cost per solved task is $\bar c / \hat p$: total spend over tasks solved.
+
+**Retrying until the tests pass.** Suppose each attempt costs $c$ and succeeds independently with probability $p$, and a run tries up to $k$ times. A run costs $c\,(1 - (1 - p)^k)/p$ on average and succeeds with probability $1 - (1 - p)^k$, so the cost per solved task is exactly $c/p$, whatever $k$ is: with independent attempts, more retries buy more successes at a constant price. Correlation breaks this. When attempts on a task are correlated (chapter 8, $\rho > 0$), the runs left unsolved are the hard-stuck ones, extra attempts on them rarely succeed, and the cost per solved task rises with $k$, as it does in the simulation. Growing prompts (every turn resends the conversation) push the same way.
+
+**The front.** A configuration $i$ is dominated when some $j$ has $c_j \le c_i$ and $p_j \ge p_i$, with one inequality strict; the front is everything not dominated. The engine checks its front against that definition on random point sets. Sorting by cost, the front is the sequence of points each of which succeeds more than every cheaper point.
+
+</Layer>
+
+<Layer kind="code">
+
+The Pareto front, cut from the vendored engine (`stats.ts`):
+
+```ts
+for (let j = 0; j < points.length; j++) {
+  const [c2, s2] = points[j] as [number, number];
+  if (j !== i && c2 <= c && s2 >= s && (c2 < c || s2 > s)) {
+    beaten = true;
+    break;
+  }
+}
+```
+
+</Layer>
+
+<Callout kind="deeper">
+
+- [Inference Trade-offs Explained](https://inference-tradeoffs-explained.vercel.app): the same cost-against-quality trade-off one layer down, in how the model is served.
+- [LLM Inference Explained](https://llm-inference-explained.vercel.app): where per-token prices and latencies come from.
+- [Agent Orchestration Explained](https://agent-orchestration-explained.vercel.app): what multi-agent patterns cost per task, and reliability against retries.
+
+</Callout>

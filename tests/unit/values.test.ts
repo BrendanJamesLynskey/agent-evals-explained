@@ -15,6 +15,10 @@ const RESULTS = readFileSync(
   join(__dirname, "../../src/data/evals_results.md"),
   "utf8",
 );
+const RESULTS2 = readFileSync(
+  join(__dirname, "../../src/data/evals2_results.md"),
+  "utf8",
+);
 const p1 = (x: number) => E.study.pct(x, 1);
 
 describe("every quoted value resolves", () => {
@@ -78,5 +82,39 @@ describe("the prose agrees with the engine's recorded results", () => {
       expect(RESULTS).toContain(
         `| ${p1(d.delta)} | ${d.unpaired.toLocaleString("en-GB")} | ${d.paired.toLocaleString("en-GB")} |`,
       );
+  });
+});
+
+describe("chapters 6-10 agree with the engine's recorded results (part 2)", () => {
+  it("chapter 6: every judge setting", () => {
+    for (const r of Object.values(tree().jd as Obj))
+      expect(RESULTS2).toContain(
+        `| ${p1(r.accuracy1)} | ${r.k1.toFixed(2)} | ${p1(r.first_share)} | ${p1(r.consistency)} | ${r.kd.toFixed(2)} | ${p1(r.accuracy_decided)} |`,
+      );
+    const g = tree().gr as Obj;
+    expect(RESULTS2).toContain(
+      `unit tests ${p1(g.tests_rate)}, judge ${p1(g.judge_rate)}`,
+    );
+    expect(RESULTS2).toContain(`Corrected ${p1(g.corrected.corrected)}`);
+  });
+  it("chapter 8: every configuration", () => {
+    for (const c of Object.values(tree().hx as Obj))
+      expect(RESULTS2).toContain(
+        `| ${c.agent} | ${c.tools} | ${c.style} | ${c.budget} | ${p1(c.rate)} (${c.k}/${c.n}) | ${p1(c.wilson[0])} to ${p1(c.wilson[1])} |`,
+      );
+  });
+  it("chapter 9: every leak rate", () => {
+    for (const [k, v] of Object.entries(tree().ct as Obj)) {
+      if (!/^[0-9.]+$/.test(k)) continue;
+      const l = v as Obj;
+      expect(RESULTS2).toContain(
+        `| ${l.leaked} (${l.verbatim} / ${l.paraphrased}) | ${l.flagged_verbatim} | ${l.flagged_paraphrased} | ${l.canary ? "yes" : "no"} | ${p1(l.rate)} | ${p1(l.clean_rate)} | ${p1(l.rate_kept)} |`,
+      );
+    }
+  });
+  it("chapter 10: the front", () => {
+    expect(RESULTS2).toContain(
+      `Pareto front (cheapest first): ${(tree().cx.front as string[]).join(", ")}.`,
+    );
   });
 });

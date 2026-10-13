@@ -37,6 +37,14 @@ describe("vendored engine", () => {
       "ts/src/rng.ts",
       "fixtures/evals_fixtures.json",
       "fixtures/evals_results.md",
+      "ts/src/evals/judge.ts",
+      "ts/src/evals/trajectory.ts",
+      "ts/src/evals/scaffold.ts",
+      "ts/src/evals/contamination.ts",
+      "ts/src/evals2_data.json",
+      "fixtures/evals2_fixtures.json",
+      "fixtures/evals2_results.md",
+      "traces/qwen-fix-test-react.json",
     ])
       expect(froms).toContain(f);
   });
@@ -46,7 +54,7 @@ describe("vendored engine", () => {
     const fx = JSON.parse(
       readFileSync(join(ROOT, "tests/fixtures/evals_fixtures.json"), "utf8"),
     ) as Obj;
-    expect(fx.engine).toBe("1.8.0");
+    expect(fx.engine).toBe("1.9.0");
     for (const [x, v] of fx.mathx.exp) expect(E.mathx.exp(x)).toBe(v);
     for (const [p, v] of fx.mathx.norm_ppf) expect(E.mathx.normPpf(p)).toBe(v);
     for (const [k, n, w, wi, ex] of fx.stats.intervals) {
@@ -60,6 +68,21 @@ describe("vendored engine", () => {
     expect(E.study.pairedStudy(3)).toEqual(fx.paired["3"]);
     expect(E.study.uncertaintyStudy(50, "runs")).toEqual(
       fx.uncertainty["50|runs"],
+    );
+  });
+
+  it("the engine's evals fixtures, part 2, are reproduced by the vendored port", async () => {
+    const { E } = await import("@/lib/engine");
+    const fx = JSON.parse(
+      readFileSync(join(ROOT, "tests/fixtures/evals2_fixtures.json"), "utf8"),
+    ) as Obj;
+    expect(fx.engine).toBe("1.9.0");
+    for (const [t, v] of fx.stats.kappa)
+      expect(E.stats.cohenKappa(t)).toEqual(v);
+    for (const [pts, v] of fx.stats.pareto)
+      expect(E.stats.paretoFront(pts)).toEqual(v);
+    expect(JSON.parse(JSON.stringify(E.judge.gradingStudy()))).toEqual(
+      fx.grading,
     );
   });
 

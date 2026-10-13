@@ -11,7 +11,13 @@
  * the PATH.
  */
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -19,6 +25,7 @@ import { chromium } from "@playwright/test";
 
 const OUT = path.join(process.cwd(), "docs", "media");
 const BASE = process.env.SCREENSHOT_BASE_URL ?? "http://localhost:3000";
+const ONLY = process.env.CLIPS?.split(",");
 
 type Clip = {
   name: string;
@@ -28,6 +35,8 @@ type Clip = {
   fps: number;
   /** a radio to press first (a parameter), if any */
   radio?: string;
+  /** record every n-th step only (long animations) */
+  every?: number;
 };
 
 const CLIPS: Clip[] = [
@@ -61,6 +70,37 @@ const CLIPS: Clip[] = [
     widget: "paired-widget",
     fps: 3,
   },
+  {
+    name: "judge",
+    path: "/learn/06-graders",
+    widget: "judge-widget",
+    fps: 5,
+    every: 4,
+  },
+  {
+    name: "trajectory",
+    path: "/learn/07-trajectories",
+    widget: "trajectory-widget",
+    fps: 1,
+  },
+  {
+    name: "harness",
+    path: "/learn/08-the-harness",
+    widget: "harness-widget",
+    fps: 8,
+  },
+  {
+    name: "contamination",
+    path: "/learn/09-contamination",
+    widget: "contamination-widget",
+    fps: 1,
+  },
+  {
+    name: "cost",
+    path: "/learn/10-cost-aware-evaluation",
+    widget: "cost-widget",
+    fps: 2,
+  },
 ];
 
 async function main(): Promise<void> {
@@ -72,7 +112,7 @@ async function main(): Promise<void> {
     reducedMotion: "reduce",
   });
   const page = await context.newPage();
-  for (const c of CLIPS) {
+  for (const c of CLIPS.filter((x) => !ONLY || ONLY.includes(x.name))) {
     const dir = mkdtempSync(path.join(tmpdir(), `ahe-${c.name}-`));
     await page.goto(BASE + c.path, { waitUntil: "networkidle" });
     const fig = page.getByTestId(c.widget);
@@ -93,23 +133,36 @@ async function main(): Promise<void> {
     const scrub = fig.getByTestId("scrub");
     const max = Number(await scrub.getAttribute("max"));
     const visual = fig.getByTestId("visual");
-    for (let s = 0; s <= max; s++) {
+    let n = 0;
+    for (let s = 0; s <= max; s += c.every ?? 1) {
       await scrub.fill(String(s));
       await visual.screenshot({
-        path: path.join(dir, `f${String(s).padStart(4, "0")}.png`),
+        path: path.join(dir, `f${String(n++).padStart(4, "0")}.png`),
       });
     }
     const input = path.join(dir, "f%04d.png");
     const gif = path.join(OUT, `${c.name}.gif`);
     const webm = path.join(OUT, `${c.name}.webm`);
-    // even dimensions for the video encoder; a shared palette for the GIF
-    const scale = "scale=560:-2:flags=lanczos";
+    // frames can differ in size (a panel that grows): without -reinit_filter 0 ffmpeg rebuilds the
+    // filter graph at each change and the GIF keeps only one frame; pad every frame to the largest
+    // (read from each PNG's header); even dimensions for the video encoder; a shared GIF palette
+    let mw = 0;
+    let mh = 0;
+    for (const f of readdirSync(dir)) {
+      const b = readFileSync(path.join(dir, f));
+      mw = Math.max(mw, b.readUInt32BE(16));
+      mh = Math.max(mh, b.readUInt32BE(20));
+    }
+    const scale = `pad=${mw}:${mh}:0:0:color=white,scale=560:-2:flags=lanczos`;
     execFileSync("ffmpeg", [
       "-y",
       "-loglevel",
       "error",
       "-framerate",
       String(c.fps),
+      // keep one filter graph across frames of different sizes (the pad evens them out)
+      "-reinit_filter",
+      "0",
       "-i",
       input,
       "-vf",
@@ -124,6 +177,9 @@ async function main(): Promise<void> {
       "error",
       "-framerate",
       String(c.fps),
+      // keep one filter graph across frames of different sizes (the pad evens them out)
+      "-reinit_filter",
+      "0",
       "-i",
       input,
       "-vf",
@@ -138,7 +194,8 @@ async function main(): Promise<void> {
       "yuv420p",
       webm,
     ]);
-    rmSync(dir, { recursive: true, force: true });
+    if (process.env.KEEP) console.log(dir);
+    else rmSync(dir, { recursive: true, force: true });
     console.log(
       `wrote ${path.relative(process.cwd(), gif)} and .webm (${max + 1} frames)`,
     );

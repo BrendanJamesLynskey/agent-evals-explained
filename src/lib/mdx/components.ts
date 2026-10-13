@@ -7,12 +7,18 @@ import type { MDXRemoteProps } from "next-mdx-remote/rsc";
 
 import { Layer } from "@/components/interactive/Layer";
 import {
+  ContaminationWidget,
+  CorrectionChart,
+  CostWidget,
   CoverageChart,
   EvalLoopWidget,
+  HarnessWidget,
+  JudgeWidget,
   PairedWidget,
   PassKWidget,
   SampleSizeCalc,
   SweTaskWidget,
+  TrajectoryWidget,
   UncertaintyWidget,
 } from "@/components/interactive/lazy";
 import { Eq } from "@/components/mdx/Eq";
@@ -34,4 +40,10 @@ export const mdxComponents: NonNullable<MDXRemoteProps["components"]> = {
   PairedWidget,
   CoverageChart,
   SampleSizeCalc,
+  JudgeWidget,
+  CorrectionChart,
+  TrajectoryWidget,
+  HarnessWidget,
+  ContaminationWidget,
+  CostWidget,
 };

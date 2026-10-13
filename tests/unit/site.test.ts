@@ -1,6 +1,6 @@
 /**
- * The small modules around the engine: number formats, the palette, the chapter catalogue, the
- * planned chapters and the site constants.
+ * The small modules around the engine: number formats, the palette, the chapter catalogue and
+ * the site constants.
  */
 import { describe, expect, it } from "vitest";
 
@@ -19,7 +19,6 @@ import {
   isValidSlug,
   readSectionMdx,
 } from "@/lib/mdx/sections";
-import { PLANNED } from "@/lib/planned";
 import { ARXIV, GITHUB_URL, PAPERS, SITE_URL, repoFile } from "@/lib/site";
 import {
   AGENT_COLOUR,
@@ -63,12 +62,12 @@ describe("palette", () => {
 
 describe("chapters and site", () => {
   it("catalogue", async () => {
-    expect(SECTIONS).toHaveLength(5);
-    expect(PLANNED).toHaveLength(5);
+    expect(SECTIONS).toHaveLength(10);
     expect(getSectionMeta("03-pass-at-k-and-pass-hat-k").title).toBe(
       "pass@k and pass^k",
     );
     expect(isValidSlug("05-comparing-two-agents")).toBe(true);
+    expect(isValidSlug("10-cost-aware-evaluation")).toBe(true);
     expect(isValidSlug("99-nope")).toBe(false);
     expect(await readSectionMdx("01-what-an-eval-is")).toMatch(
       /^<EvalLoopWidget>/,

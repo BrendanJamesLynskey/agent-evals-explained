@@ -14,7 +14,7 @@ import { ENGINE_URL, repoFile } from "@/lib/site";
 export const metadata = {
   title: "Data",
   description:
-    "The evals engine's recorded run: the score as runs accumulate, pass@k and pass^k by k, interval coverage over reruns, exact coverage, sample sizes, two agents compared and the SWE-style task's verdicts.",
+    "The evals engine's recorded run: the score as runs accumulate, pass@k and pass^k by k, interval coverage over reruns, exact coverage, sample sizes, two agents compared, the SWE-style task's verdicts, the simulated judge, graded trajectories, the harness study, contamination and cost.",
 };
 
 const A =
@@ -68,8 +68,13 @@ export default function DataPage(): JSX.Element {
           as this page was built; the engine records the same run in{" "}
           <a href={repoFile("src/data/evals_results.md")} className={A}>
             evals_results.md
+          </a>{" "}
+          and{" "}
+          <a href={repoFile("src/data/evals2_results.md")} className={A}>
+            evals2_results.md
           </a>
-          . Every task, skill and correlation is synthetic.
+          . Every task, skill, bias, leak and correlation is synthetic; token
+          counts and costs are the harness&apos;s own accounting.
         </p>
 
         <h2>Chapter 1: runs accumulating</h2>
@@ -188,6 +193,124 @@ export default function DataPage(): JSX.Element {
           True difference on these tasks:{" "}
           {((lookup("pair.1.truth") as number) * 100).toFixed(1)} points.
         </p>
+
+        <h2>Chapter 6: a simulated judge</h2>
+        <T
+          head={[
+            "biases",
+            "accuracy, one order",
+            "κ, one order",
+            "first shown wins",
+            "orders agree",
+            "κ, swapped",
+            "right where decided",
+          ]}
+          rows={Object.values(t.jd as Obj).map((r: Obj) => [
+            r.setting,
+            pct(r.accuracy1, 1),
+            r.k1.toFixed(2),
+            pct(r.first_share, 1),
+            pct(r.consistency, 1),
+            r.kd.toFixed(2),
+            pct(r.accuracy_decided, 1),
+          ])}
+        />
+        <p>
+          Pass/fail grading: unit tests {pct(t.gr.tests_rate, 1)}, the judge{" "}
+          {pct(t.gr.judge_rate, 1)}, corrected{" "}
+          {pct(t.gr.corrected.corrected, 1)} (95% {iv(t.gr.corrected.ci)}).
+        </p>
+
+        <h2>Chapter 7: grading trajectories</h2>
+        <T
+          head={[
+            "trajectory",
+            "outcome",
+            "self-report",
+            "trajectory",
+            "wasted",
+            "unsafe run / stopped",
+            "score",
+          ]}
+          rows={Object.values(t.tr as Obj).map((r: Obj) => [
+            r.title,
+            r.grades.outcome ? "pass" : "fail",
+            r.grades.self_report ? "pass" : "fail",
+            r.grades.trajectory ? "pass" : "fail",
+            r.waste,
+            `${r.counts.unsafe_run} / ${r.counts.unsafe_stopped}`,
+            (r.score as number).toFixed(2),
+          ])}
+        />
+
+        <h2>Chapter 8: one model, many harnesses</h2>
+        <T
+          head={[
+            "model",
+            "tools",
+            "calls",
+            "turns",
+            "resolved",
+            "Wilson 95%",
+            "model calls",
+            "$ a run",
+          ]}
+          rows={Object.values(t.hx as Obj).map((c: Obj) => [
+            c.agent,
+            c.tools === "test" ? "with a shell" : "read/edit",
+            c.style,
+            c.budget,
+            pct(c.rate, 1),
+            iv(c.wilson),
+            (c.turns as number).toFixed(2),
+            `$${(c.cost_per_run as number).toFixed(4)}`,
+          ])}
+        />
+
+        <h2>Chapter 9: contamination</h2>
+        <T
+          head={[
+            "leak rate",
+            "leaked",
+            "flagged (verbatim / paraphrase)",
+            "score",
+            "clean",
+            "flagged dropped",
+            "before − after cutoff",
+          ]}
+          rows={Object.entries(t.ct as Obj)
+            .filter(([k]) => /^[0-9.]+$/.test(k))
+            .map(([, v]) => {
+              const l = v as Obj;
+              return [
+                pct(l.leak),
+                l.leaked,
+                `${l.flagged_verbatim} of ${l.verbatim} / ${l.flagged_paraphrased} of ${l.paraphrased}`,
+                pct(l.rate, 1),
+                pct(l.clean_rate, 1),
+                pct(l.rate_kept, 1),
+                `${(l.gap * 100).toFixed(1)} points (p = ${(l.split.p as number).toFixed(3)})`,
+              ];
+            })}
+        />
+
+        <h2>Chapter 10: cost</h2>
+        <T
+          head={[
+            "configuration",
+            "resolved",
+            "$ a task",
+            "$ per solved",
+            "front",
+          ]}
+          rows={(t.cost.cost.points as Obj[]).map((q) => [
+            q.id.replaceAll("|", " · "),
+            pct(q.rate, 1),
+            `$${(q.cost as number).toFixed(4)}`,
+            `$${(q.per_solved as number).toFixed(4)}`,
+            q.front ? "yes" : "",
+          ])}
+        />
       </div>
     </main>
   );
