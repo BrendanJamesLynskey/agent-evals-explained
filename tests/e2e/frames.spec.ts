@@ -70,7 +70,9 @@ const COST = CH.cost.frames as Obj;
 
 const select = (label: string, value: string) => async (fig: Locator) =>
   change(fig, async () => {
-    await fig.getByLabel(label).selectOption(value);
+    await fig
+      .getByRole("combobox", { name: label, exact: true })
+      .selectOption(value);
   });
 const SWE = CH.swe.anatomies as Obj;
 const UNC = CH.uncertainty.studies as Obj;
