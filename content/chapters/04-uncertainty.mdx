@@ -1,0 +1,60 @@
+<UncertaintyWidget>
+  <Eq
+    label="Wilson's interval: p hat plus z squared over 2 n, plus or minus z times the square root of p hat times one minus p hat over n plus z squared over 4 n squared, all over one plus z squared over n"
+    tex="\htmlClass{hl-ci}{\frac{\htmlClass{hl-phat}{\hat p} + \frac{z^2}{2n} \;\pm\; z\sqrt{\frac{\htmlClass{hl-phat}{\hat p}(1-\htmlClass{hl-phat}{\hat p})}{n} + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}}}"
+  />
+</UncertaintyWidget>
+
+<Layer kind="concept">
+
+A score is one draw from a distribution of scores you might have got. The animation makes the distribution visible: it reruns a benchmark <V of="consts.unc.replicates" fmt="int" /> times and draws each rerun's 95% interval against the truth. "95%" is a promise about exactly this picture: over many reruns, 95% of the intervals should cover the true score. On the default 200-task benchmark, with new tasks and new runs each time, Wilson's intervals covered it in <V of="unc.200|tasks.coverage.wilson" fmt="pct" /> of these <V of="consts.unc.replicates" fmt="int" /> reruns, and on average they are <V of="unc.200|tasks.mean_width.wilson" fmt="pct1" /> wide from end to end. <V of="consts.unc.replicates" fmt="int" /> reruns are few, so the count itself wobbles by several points either way; the chart below gives the coverage exactly.
+
+**What is "the truth"?** It depends on what a rerun redraws. If each rerun draws **new tasks** from the same population, the truth is the population's score, and task sampling is part of the error. If it keeps **the same tasks** and only reruns the agent, the truth is those tasks' own score and the intervals here are conservative: they still allow for task sampling that is not happening. The first question is usually the one that matters, "how would it do on tasks like these?", and it is the one a benchmark score is quoted as answering.
+
+**Why "<V of="tie.test.p1" fmt="pct1" /> against <V of="tie.test.p2" fmt="pct1" />" is a tie.** Two agents score <V of="consts.tie.k1" fmt="int" /> and <V of="consts.tie.k2" fmt="int" /> out of <V of="consts.tie.n" fmt="int" /> tasks: <V of="tie.test.p1" fmt="pct1" /> and <V of="tie.test.p2" fmt="pct1" />. Their Wilson intervals are <V of="tie.test.wilson1.0" fmt="pct1" /> to <V of="tie.test.wilson1.1" fmt="pct1" /> and <V of="tie.test.wilson2.0" fmt="pct1" /> to <V of="tie.test.wilson2.1" fmt="pct1" />, almost the same interval. The two-proportion test gives $z$ = <V of="tie.test.z" fmt="f3" /> and $p$ = <V of="tie.test.p" fmt="f3" />. On <V of="consts.tie.n" fmt="int" /> tasks the smallest difference a comparison of separately run agents detects with 80% power is <V of="tie.mde_unpaired" fmt="pp1" />; telling these two apart would take <V of="tie.n_unpaired" fmt="int" /> tasks per agent. Leaderboards that rank by the first decimal are ranking noise.
+
+<CoverageChart />
+
+The chart shows what the promise is worth, computed exactly (a sum over every possible score) rather than by simulation. The textbook **Wald** interval, $\hat p \pm z\sqrt{\hat p(1-\hat p)/n}$, collapses near 0% and 100%: on 20 tasks its coverage falls as low as <V of="cover.20.wald_min" fmt="pct1" />. Near the edges is where agent scores often sit (a hard benchmark at release, an easy one near saturation). **Wilson's** interval stays near 95% (lowest <V of="cover.20.wilson_min" fmt="pct1" /> on 20 tasks), and the **exact** (Clopper–Pearson) interval never drops below 95% (lowest <V of="cover.20.exact_min" fmt="pct1" />), at the price of being wider. The **bootstrap** resamples the tasks and takes percentiles; for a single pass rate it behaves much like Wald, and its strength is in statistics with no formula.
+
+<SampleSizeCalc />
+
+How many tasks you need follows from the width you can live with. For $\pm 3$ points at 95% near a 50% score, <V of="margin.0.5|0.03" fmt="int" /> tasks; for $\pm 1$ point, <V of="margin.0.5|0.01" fmt="int" />. To tell an agent at 65% from one at 60% (a 5-point difference) at 80% power: <V of="diff.0.05.unpaired" fmt="int" /> tasks each if they run on separate tasks, <V of="diff.0.05.paired" fmt="int" /> if they share them (chapter 5 explains why sharing helps).
+
+</Layer>
+
+<Callout kind="illustrative">
+
+The population, the agent's skill $\theta$ = <V of="consts.unc.theta" fmt="num" />, the number of reruns and the bootstrap's <V of="consts.unc.boot" fmt="int" /> resamples are illustrative; the tied pair of scores is an example, not any real leaderboard. The paired sample sizes assume a discordance of <V of="consts.sizes.psi" fmt="pct" /> (the share of tasks exactly one agent passes). The interval formulas, their exact coverage and the sample-size formulas are standard, and the engine tests them against scipy and statsmodels.
+
+</Callout>
+
+<Layer kind="maths">
+
+With $k$ passes on $n$ tasks, $\hat p = k/n$. **Wald** inverts the normal approximation around $\hat p$; its standard error is zero at $\hat p \in \{0, 1\}$, which is why it fails there. **Wilson** (1927) inverts the score test instead: the interval is every $p$ for which $|\hat p - p| \le z\sqrt{p(1-p)/n}$, and solving that quadratic gives the formula above. **Clopper–Pearson** (1934) inverts two exact binomial tests: its ends are beta quantiles, $B(\alpha/2;\,k,\,n-k+1)$ and $B(1-\alpha/2;\,k+1,\,n-k)$, which the engine finds by bisection on the regularised incomplete beta function. The **percentile bootstrap** (Efron 1979) resamples the $n$ tasks with replacement $B$ times and takes the 2.5th and 97.5th percentiles of the resampled means.
+
+The coverage of a closed-form interval at true rate $p$ is exactly $\sum_{k=0}^{n} \binom{n}{k}p^k(1-p)^{n-k}\,\mathbf{1}[p \in \text{CI}(k)]$, a step function of $p$ (the jagged lines). For sample size, a margin $h$ needs $n = z^2 p(1-p)/h^2$, and detecting a difference $\delta = p_1 - p_2$ with power $1-\beta$ between independently sampled agents needs, per agent (Fleiss),
+
+$$n = \frac{\big(z_{1-\alpha/2}\sqrt{2\bar p(1-\bar p)} + z_{1-\beta}\sqrt{p_1(1-p_1) + p_2(1-p_2)}\big)^2}{\delta^2}.$$
+
+</Layer>
+
+<Layer kind="code">
+
+Wilson's interval, cut from the vendored engine (`stats.ts`):
+
+```ts
+const half = z * Math.sqrt((p * (1.0 - p)) / n + z2 / (4.0 * n * n));
+return clip((mid - half) / den, (mid + half) / den);
+```
+
+</Layer>
+
+<Callout kind="deeper">
+
+- Evan Miller, [Adding Error Bars to Evals](https://arxiv.org/abs/2411.00640) (2024): standard errors, the super-population, power analysis for language-model evals.
+- Polo et al., [tinyBenchmarks](https://arxiv.org/abs/2402.14992) (2024): item-response models to estimate a score from far fewer examples.
+- [Papers 07](https://brendanjameslynskey.github.io/Papers_07_Evaluation_and_Benchmarks/#slide-06): saturation and noise in headline benchmarks.
+- [Agent Orchestration Explained: reliability](https://agent-orchestration-explained.vercel.app/learn/07-reliability) uses the same Wilson intervals for simulated success rates.
+
+</Callout>

@@ -1,0 +1,62 @@
+<SweTaskWidget>
+  <Eq
+    label="A task is resolved exactly when every FAIL TO PASS test passes after the patch and every PASS TO PASS test still passes"
+    tex="\begin{aligned} \htmlClass{hl-res}{\text{resolved}} \iff\; & \forall t \in \htmlClass{hl-f2p}{\text{FAIL\_TO\_PASS}}:\ \text{pass}_t \\ \wedge\; & \forall t \in \htmlClass{hl-p2p}{\text{PASS\_TO\_PASS}}:\ \text{pass}_t \end{aligned}"
+  />
+</SweTaskWidget>
+
+<Layer kind="concept">
+
+The animation is one task in the style of [SWE-bench](https://arxiv.org/abs/2310.06770), the benchmark most coding agents are quoted on. The agent gets a repository at a **base commit** and an **issue** written by a person. It reads, edits and runs things, then stops; its **patch** is the difference between the repository it leaves and the base commit. Only then are the **hidden tests** added and run. SWE-bench's dataset names them: **FAIL_TO_PASS** tests were written with the real fix and fail on the base commit, so they check the issue is fixed; **PASS_TO_PASS** tests passed before, so they check nothing else broke. The task is **resolved** only if every one of both kinds passes.
+
+The three patches show what the grader can and cannot see. The right fix passes. A patch that breaks `sub()` while fixing `add()` fails a PASS_TO_PASS test, even though the agent said it had fixed the arithmetic. The overfit patch, `return a * b - 1`, gives $\text{add}(2, 3) = 5$ and nothing else right: the thorough hidden tests catch it, but with the **weak** tests (only the example from the issue) it is scored as <V of="verdict.overfit|weak" fmt="raw" />. A grader is only as good as its tests, and the agent's own report counts for nothing.
+
+## The benchmarks, from their papers
+
+| Benchmark                                                                              | What it measures                                                                    | Size                                                              | How it is graded                                                           | Known issues                                                                                                                                                                                                                                                                          |
+| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [SWE-bench](https://arxiv.org/abs/2310.06770) (Jimenez et al., 2023)                   | resolving real GitHub issues in a full repository                                   | 2,294 tasks from 12 Python repositories                           | hidden unit tests (FAIL_TO_PASS, PASS_TO_PASS)                             | [SWE-Bench+](https://arxiv.org/abs/2410.06992): of successful patches it checked, 32.67% had the solution in the issue or its comments and 31.08% passed weak tests; over 94% of issues predate the models' training cut-offs                                                         |
+| [SWE-bench Verified](https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified) | the same, on a cleaner subset                                                       | 500 tasks, human-validated                                        | as SWE-bench                                                               | [Prathifkumar et al. (2025)](https://arxiv.org/abs/2512.10218): models located the files to edit far more often on Verified than on newer benchmarks, which suggests they have seen its tasks                                                                                         |
+| [τ-bench](https://arxiv.org/abs/2406.12045) (Yao et al., 2024)                         | a tool-using agent serving a simulated user under a domain policy (retail, airline) | two domains of tasks                                              | the final database state against the annotated goal; introduced **pass^k** | the user is simulated by a language model; the [repository](https://github.com/sierra-research/tau-bench) says its tasks are outdated and points to [τ²-bench](https://arxiv.org/abs/2506.07982) and its successor                                                                    |
+| [GAIA](https://arxiv.org/abs/2311.12983) (Mialon et al., 2023)                         | a general assistant: reasoning, browsing, files, tools                              | 466 questions                                                     | each has one short answer                                                  | humans 92% against 15% for GPT-4 with plugins at release; answers to 300 are held back for the leaderboard, so the rest are public (our inference: those can leak)                                                                                                                    |
+| [WebArena](https://arxiv.org/abs/2307.13854) (Zhou et al., 2023)                       | web tasks on self-hosted sites: shopping, a forum, code hosting, content management | 812 tasks ([repository](https://github.com/web-arena-x/webarena)) | functional correctness of the outcome                                      | the sites must be reset to their initial state after each evaluation; at release the best agent scored 14.41% against 78.24% for people                                                                                                                                               |
+| [OSWorld](https://arxiv.org/abs/2404.07972) (Xie et al., 2024)                         | computer use in real operating systems and apps                                     | 369 tasks                                                         | a custom execution-based script per task                                   | community-reported task issues led to [OSWorld-Verified](https://github.com/xlang-ai/OSWorld) (2025); tasks that need an account or a proxy fail if those are not set up                                                                                                              |
+| [Terminal-Bench 2.0](https://arxiv.org/abs/2601.11868) (Merrill et al., 2026)          | hard, realistic work in a terminal                                                  | 89 tasks                                                          | tests per task, each with a human-written solution                         | the harness moves scores: [StateM](https://arxiv.org/abs/2608.15089) reports one model rising from 83.1% to 92.1% on version 2.1 by changing only the harness; [reward hacking](https://arxiv.org/abs/2608.22103) (passing the checks while missing the point) is measured separately |
+
+Counts and results are each paper's own, at its release; benchmarks are revised, so check the current version before comparing numbers. Every arXiv entry above was checked at export.arxiv.org on 2026-10-13.
+
+Three things recur down the last column, and the later chapters take each in turn: **graders** that pass wrong work (chapter 6), the **harness** being part of the result (chapter 8), and **contamination**, tasks the model may have seen in training (chapter 9).
+
+</Layer>
+
+<Callout kind="illustrative">
+
+The repository is the engine's three-function toy, the issue and the three patches are scripted, and the "agent" is the engine's harness with a scripted model. What is real is the grading logic: SWE-bench's FAIL_TO_PASS and PASS_TO_PASS rule, run by the engine's test runner.
+
+</Callout>
+
+<Layer kind="maths">
+
+Grading turns each task into one bit, $x_t \in \{0, 1\}$, and the score is their mean, $\hat p = \frac{1}{T}\sum_t x_t$. Every grader error moves that bit. If a fraction $f_+$ of failed tasks is wrongly passed (weak tests) and a fraction $f_-$ of solved ones is wrongly failed (flaky tests, a broken environment), the expected score is $p(1 - f_-) + (1-p)f_+$ instead of $p$. A biased grader is not noise that more tasks average away: chapter 4's intervals would tighten around the wrong number.
+
+</Layer>
+
+<Layer kind="code">
+
+Running one hidden test alone, cut from the vendored engine (`swe.ts`):
+
+```ts
+const blocks = src.split("\n\n\n");
+const keep = [blocks[0]!, ...blocks.slice(1).filter((b) => b.startsWith(`def ${name}(`))];
+```
+
+</Layer>
+
+<Callout kind="deeper">
+
+- [Papers 07: HumanEval](https://brendanjameslynskey.github.io/Papers_07_Evaluation_and_Benchmarks/#slide-02), where functional correctness by hidden unit tests started.
+- [LLM Hub: Coding Agents](https://brendanjameslynskey.github.io/LLM_Hub_Coding_Agents/): how the agents being scored read a repository and edit it.
+- [Agent Harnesses Explained](https://agent-harnesses-explained.vercel.app): the harness that ran this task's agent.
+- [SWE-bench-Live](https://arxiv.org/abs/2505.23419): 1,319 tasks from issues created since 2024, built to resist contamination.
+
+</Callout>
