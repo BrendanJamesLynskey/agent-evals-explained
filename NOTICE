@@ -1,0 +1,8 @@
+Agent Evals Explained is released under the MIT licence (LICENSE).
+
+It vendors Agent_Loop_Sim (MIT, https://github.com/BrendanJamesLynskey/Agent_Loop_Sim) in
+src/lib/engine/vendor/, src/data/ and tests/fixtures/, at the commit recorded in
+src/lib/engine/vendor/VENDORED.json.
+
+The vendored engine also contains the Qwen2.5 tokenizer port (src/lib/engine/vendor/tokenizer.ts), which
+this site does not load in the browser.

@@ -1,0 +1,7 @@
+{
+  "loop": {},
+  "swe": { "patches": ["fix", "overfit", "collateral"], "tests": ["thorough", "weak"] },
+  "passk": {},
+  "uncertainty": { "default_size": 200, "default_mode": "tasks" },
+  "paired": { "default_runs": 1 }
+}

@@ -1,0 +1,57 @@
+<EvalLoopWidget>
+  <Eq
+    label="The standard error counting runs as independent is the square root of p hat times one minus p hat over N; counting tasks as the unit, it is one over N times the square root of T over T minus one times the sum over tasks of S t minus m t p hat, squared"
+    tex="\begin{gathered} \widehat{SE}_{\text{runs}} = \htmlClass{hl-naive}{\sqrt{\frac{\hat p(1-\hat p)}{N}}} \\ \widehat{SE}_{\text{tasks}} = \htmlClass{hl-cluster}{\frac{1}{N}\sqrt{\frac{T}{T-1}\sum_{t=1}^{T}\big(S_t - m_t\,\hat p\big)^2}} \end{gathered}"
+  />
+</EvalLoopWidget>
+
+<Layer kind="concept">
+
+An **eval** has four parts. A set of **tasks** (a benchmark); an **agent** that attempts each one, perhaps several times (**runs**); a **grader** that turns each attempt into pass or fail (a test suite, a checker, a judge); and a **score**, usually the fraction of runs that pass. The score is a measurement, and like any measurement it comes with an error bar. This site is about that error bar: where it comes from, how big it is, and how to make it smaller.
+
+The animation grades <V of="loopx.runs" fmt="int" /> runs one at a time: <V of="consts.loop.tasks" fmt="int" /> tasks drawn from a synthetic population, each run <V of="consts.loop.runs" fmt="int" /> times. After the first run of every task the score is <V of="loopx.round1.p" fmt="pct1" />, and the 95% band that treats every run as independent (Wilson's interval, filled) is <V of="loopx.round1.wilson_width" fmt="pct1" /> wide. Two more rounds of runs triple the data and that band narrows to <V of="loopx.round3.wilson_width" fmt="pct1" />.
+
+The band that treats **tasks** as the unit (dashed) hardly moves: <V of="loopx.round1.cluster_width" fmt="pct1" /> after one run of each task, <V of="loopx.round3.cluster_width" fmt="pct1" /> after three. The reason is that the runs on one task are not independent: a task that is easy for this agent passes again and again, and a hard one keeps failing. Running the same 40 tasks three times tells you a lot about those 40 tasks and little more about the next 40. The uncertainty that matters, how the agent would do on tasks like these, is dominated by **which tasks** you happened to pick.
+
+The dotted line is the population's true score, <V of="loopx.truth_population" fmt="pct1" />; these 40 tasks happen to be easier (their own true score is <V of="loopx.truth_tasks" fmt="pct1" />). The dashed band covers the population's score; the filled band, by the third round, claims a precision the data do not have. Set the within-task correlation $\rho$ to 0 and the two bands agree more closely, because then the only thing tying runs together is task difficulty; set it to 0.9 and extra runs add almost nothing.
+
+</Layer>
+
+<Callout kind="illustrative">
+
+The task population (difficulty and discrimination drawn from a seed), the agent's skill $\theta$ = <V of="consts.loop.theta" fmt="num" /> and the within-task correlation $\rho$ = <V of="consts.loop.rho" fmt="num" /> are synthetic and illustrative; nothing here is fitted to a real benchmark or model. The two standard errors are the textbook formulas, computed exactly.
+
+</Callout>
+
+<Layer kind="maths">
+
+With $N$ runs of which $\hat p N$ pass, the binomial standard error $\sqrt{\hat p(1-\hat p)/N}$ assumes the runs are independent draws. When each of $T$ tasks is run $m_t$ times with $S_t$ passes, the runs cluster by task. The **cluster-robust** (CR1) standard error treats each task's total as one observation: its residual $S_t - m_t\hat p$ is squared and summed, with the small-sample factor $T/(T-1)$. The engine's tests check it against statsmodels' OLS with cluster-robust covariance.
+
+The ratio of the two variances is the **design effect**. For clusters of $m$ runs with intra-class correlation $\rho_{\text{ICC}}$ it is Kish's $1 + (m-1)\rho_{\text{ICC}}$; here, after three runs of each task, it is <V of="loopx.design_effect" fmt="f2" />, so the 120 runs carry about as much information as <V of="loopx.design_effect" fmt="f2" /> times fewer independent ones. The ICC here is more than the generator's $\rho$, because task difficulty also makes runs on one task alike. [Miller (2024)](https://arxiv.org/abs/2411.00640) makes the same recommendation for language-model evals: when questions come in groups, or are asked more than once, compute clustered standard errors.
+
+The runs come from an item-response model: task $t$ has difficulty $b_t$ and discrimination $a_t$, the agent has skill $\theta$, and a run passes with probability $\mu_t = 1/(1 + e^{-a_t(\theta - b_t)})$ (chapter 3 says more).
+
+</Layer>
+
+<Layer kind="code">
+
+The cluster-robust standard error, cut from the vendored engine (`stats.ts`):
+
+```ts
+for (let i = 0; i < t; i++) {
+  const d = successes[i]! - runs[i]! * p;
+  acc = acc + d * d;
+}
+const se = t > 1 ? Math.sqrt((t / (t - 1)) * acc) / n : naive;
+```
+
+</Layer>
+
+<Callout kind="deeper">
+
+- [Papers 07: Evaluation and Benchmarks](https://brendanjameslynskey.github.io/Papers_07_Evaluation_and_Benchmarks/), the five papers that set how language models are measured; its [takeaways](https://brendanjameslynskey.github.io/Papers_07_Evaluation_and_Benchmarks/#slide-06).
+- Evan Miller, [Adding Error Bars to Evals](https://arxiv.org/abs/2411.00640) (2024): the super-population view, clustered errors and paired tests, which chapters 4 and 5 build on.
+- [Agent Harnesses Explained](https://agent-harnesses-explained.vercel.app) for the loop the agent runs inside; chapter 2 runs it on one task.
+- The [LLM Hub: Agents](https://brendanjameslynskey.github.io/LLM_Hub_Agents/) decks.
+
+</Callout>

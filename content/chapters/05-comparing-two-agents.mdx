@@ -1,0 +1,56 @@
+<PairedWidget>
+  <Eq
+    label="The variance of the difference in mean score on T shared tasks is s A squared plus s B squared minus twice their covariance, over T. McNemar's statistic is the absolute difference of the discordant counts minus one, squared, over their sum"
+    tex="\begin{gathered} \widehat{\operatorname{Var}}(\hat\Delta) = \frac{s_A^2 + s_B^2 \htmlClass{hl-cov}{\;-\;2\,\widehat{\operatorname{cov}}(A, B)}}{T} \\ \chi^2 = \frac{\big(|\htmlClass{hl-disc}{n_{10}} - \htmlClass{hl-disc}{n_{01}}| - 1\big)^2}{\htmlClass{hl-disc}{n_{10}} + \htmlClass{hl-disc}{n_{01}}} \end{gathered}"
+  />
+</PairedWidget>
+
+<Layer kind="concept">
+
+Most evals end in a comparison: is the new agent better than the old one? The cheapest way to get a sharper answer is not more tasks but a better **design**: run both agents on the **same** tasks and compare them task by task.
+
+The reason is that much of the noise in a score is which tasks you drew (chapter 1). When both agents face the same tasks, that noise is shared: an easy draw flatters both, a hard one hurts both, and in the difference it cancels. In the animation, agent A (skill <V of="consts.paired.theta_a" fmt="num" />) and agent B (skill <V of="consts.paired.theta_b" fmt="num" />) run on the same <V of="consts.paired.tasks" fmt="int" /> tasks, one run each. A's per-task scores and B's correlate at <V of="pair.1.corr" fmt="f2" />. After all <V of="consts.paired.tasks" fmt="int" /> tasks, A leads by <V of="pair.1.delta" fmt="pp1" /> (the true gap on these tasks is <V of="pair.1.truth" fmt="pp1" />). The **paired** 95% interval is <V of="pair.1.ci_paired.0" fmt="pct1" /> to <V of="pair.1.ci_paired.1" fmt="pct1" /> and excludes zero; the **unpaired** one, the interval you would report if the two had been run on separate task sets, is <V of="pair.1.ci_unpaired.0" fmt="pct1" /> to <V of="pair.1.ci_unpaired.1" fmt="pct1" /> and does not. Same data, a standard error <V of="pair.1.ratio" fmt="f2" /> times the unpaired one, a different conclusion.
+
+**McNemar's test** sees the same thing from the tiles. A task both agents pass, or both fail, says nothing about which is better; only the **discordant** tasks do, where exactly one passes. With one run each, A alone passed <V of="pair.1.table.n10" fmt="int" /> tasks and B alone <V of="pair.1.table.n01" fmt="int" />. If the agents were equally good, each discordant task would be a coin flip, and a split this uneven or more comes up with probability <V of="pair.1.mcnemar.exact_p" fmt="f4" />.
+
+**Seeds and temperature** add a second source of noise: the same agent on the same task does not always do the same thing. The bars under the chart split the variance of the difference into the part from **which tasks** were drawn and the part from **the runs**. Unpaired, the tasks account for <V of="pair.1.task_share_unpaired" fmt="pct" /> of that variance; paired, for <V of="pair.1.task_share_paired" fmt="pct1" />. Pairing removes almost all of the first part; more runs per task shrink the second. Switch to five runs per task and the paired standard error falls from <V of="pair.1.se_paired" fmt="pp1" /> to <V of="pair.5.se_paired" fmt="pp1" />. Each run costs as much as a new task, so whether to buy runs or tasks depends on which part dominates.
+
+</Layer>
+
+<Callout kind="illustrative">
+
+The two agents' skills, the within-task correlation (<V of="consts.paired.rho" fmt="num" />) and the task sample are synthetic and illustrative. The runs of the two agents are independent given each task; in practice two versions of one agent may also share failure modes, which makes pairing even more useful. Each setting is one simulated draw, so the estimates themselves move between settings; the standard errors are what the designs change.
+
+</Callout>
+
+<Layer kind="maths">
+
+Write $a_t$ and $b_t$ for the agents' scores on task $t$ (a pass, or a mean over runs) and $d_t = a_t - b_t$. The difference in mean score is $\hat\Delta = \bar d$, with standard error $s_d/\sqrt{T}$. Expanding $s_d^2 = s_A^2 + s_B^2 - 2\,\widehat{\operatorname{cov}}(A, B)$ shows what pairing buys: the covariance, which the unpaired standard error $\sqrt{(s_A^2 + s_B^2)/T}$ ignores. The engine checks both against scipy's paired and Welch $t$ statistics.
+
+For pass/fail outcomes the paired table has four cells; under "no difference" each of the $n_{10} + n_{01}$ discordant tasks goes either way with probability $\tfrac12$, so the **exact McNemar** $p$-value is a two-sided binomial test, $2\,P(X \le \min(n_{10}, n_{01}))$ with $X \sim \text{Binomial}(n_{10}+n_{01}, \tfrac12)$, and the continuity-corrected $\chi^2$ above approximates it. Planning a paired study needs the discordance $\psi = p_{10} + p_{01}$ and the difference $\delta = p_{10} - p_{01}$ (Connor 1987):
+
+$$n = \frac{\big(z_{1-\alpha/2}\sqrt{\psi} + z_{1-\beta}\sqrt{\psi - \delta^2}\big)^2}{\delta^2}.$$
+
+With $m$ runs per task and within-task correlation $\rho$, one task's mean has variance $\mu(1-\mu)\,\frac{1 + (m-1)\rho}{m}$: more runs help only as far as $\rho$ allows, and not at all when $\rho = 1$.
+
+</Layer>
+
+<Layer kind="code">
+
+The paired and unpaired standard errors, cut from the vendored engine (`stats.ts`):
+
+```ts
+const seP = Math.sqrt(vd / n);
+const seU = Math.sqrt(va / n + vb / n);
+const cov = (va + vb - vd) / 2.0;
+```
+
+</Layer>
+
+<Callout kind="deeper">
+
+- Evan Miller, [Adding Error Bars to Evals](https://arxiv.org/abs/2411.00640) (2024), on paired differences between models answering the same questions.
+- [Papers 07: LLM-as-a-Judge and Chatbot Arena](https://brendanjameslynskey.github.io/Papers_07_Evaluation_and_Benchmarks/#slide-05): pairwise comparison with a judge, which chapter 6 takes up.
+- [Agent Harnesses Explained](https://agent-harnesses-explained.vercel.app): where the run-to-run randomness comes from (sampling, tool latency, retries).
+
+</Callout>
