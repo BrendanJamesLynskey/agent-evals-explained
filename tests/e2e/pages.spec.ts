@@ -162,8 +162,13 @@ test("the site switch: four tracks, and the button and header say where you are"
         "Graphs, multi-agent patterns, durability",
         "https://agent-orchestration-explained.vercel.app",
       ],
-      // not live until brief 25B switches it on in every site's menu
-      ["evals", "Evals", "Measuring agents", ""],
+      [
+        "evals",
+        "Evals",
+        "Measuring agents",
+        "https://agent-evals-explained.vercel.app",
+      ],
+      // not live until its own brief switches it on in every site's menu
       ["security", "Security", "Threats and defences", ""],
     ] as const;
     expect(
@@ -197,10 +202,9 @@ test("the site switch: four tracks, and the button and header say where you are"
         name: /^(Foundations|Hardware|Inference|Agents)\b/,
       }),
     ).toHaveCount(0);
-    // this site is listed "(soon)" until brief 25B makes it live in the
-    // menu, so no entry is marked current
-    await expect(site("evals")).toContainText("(soon)");
-    await expect(panel.locator("[aria-current]")).toHaveCount(0);
+    // this site is highlighted
+    await expect(site("evals")).toHaveAttribute("aria-current", "true");
+    await expect(panel.locator("[aria-current]")).toHaveCount(1);
     await expect(panel.getByText("Compute in transit")).toHaveCount(0);
     // every entry is a 44 px touch target
     expect(

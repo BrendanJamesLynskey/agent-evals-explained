@@ -41,6 +41,36 @@ export const SECTIONS = [
     summary:
       "Two agents on the same tasks: the paired difference and McNemar's test against the unpaired comparison, the correlation that pairing exploits, and how seeds and repeated runs add or remove variance.",
   },
+  {
+    slug: "06-graders",
+    title: "Graders",
+    summary:
+      "Unit tests, LLM judges and people: a simulated judge with position, length and self-preference biases, the swap test and what it cannot fix, Cohen's κ, and correcting a lenient pass/fail judge with a labelled calibration set.",
+  },
+  {
+    slug: "07-trajectories",
+    title: "Trajectories, not just outcomes",
+    summary:
+      "Grade the path as well as the result: wasted steps, unsafe actions run or stopped, verification and false claims, on scripted runs and on traces recorded from a small open-weights model.",
+  },
+  {
+    slug: "08-the-harness",
+    title: "The harness is part of the result",
+    summary:
+      "One simulated model under sixteen harness configurations (tools, call format, turn budget, model), run through the engine's harness: the same model 30 points apart, measured with paired comparisons.",
+  },
+  {
+    slug: "09-contamination",
+    title: "Contamination and leakage",
+    summary:
+      "Leaked benchmark tasks inflate a score; n-gram overlap finds verbatim copies and misses paraphrases, canary strings say only that something leaked, and a time split shows the score dropping at the training cutoff.",
+  },
+  {
+    slug: "10-cost-aware-evaluation",
+    title: "Cost-aware evaluation",
+    summary:
+      "Success against dollars per task: the Pareto front of the harness configurations, dollars per solved task, why more retries cost more per success when attempts are correlated, and why the front is itself an estimate.",
+  },
 ] as const;
 
 export type SectionSlug = (typeof SECTIONS)[number]["slug"];

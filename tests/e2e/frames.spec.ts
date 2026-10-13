@@ -55,6 +55,25 @@ const P2 = "/learn/02-the-benchmarks";
 const P3 = "/learn/03-pass-at-k-and-pass-hat-k";
 const P4 = "/learn/04-uncertainty";
 const P5 = "/learn/05-comparing-two-agents";
+const P6 = "/learn/06-graders";
+const P7 = "/learn/07-trajectories";
+const P8 = "/learn/08-the-harness";
+const P9 = "/learn/09-contamination";
+const P10 = "/learn/10-cost-aware-evaluation";
+const JUDGE = CH.judge.study.settings as Obj;
+const TRAJ = Object.fromEntries(
+  (CH.trajectory.rows as Obj[]).map((r) => [r.id, r]),
+) as Obj;
+const HCAP = CH.harness.captions as Obj;
+const CONTAM = CH.contamination.levels as Obj;
+const COST = CH.cost.frames as Obj;
+
+const select = (label: string, value: string) => async (fig: Locator) =>
+  change(fig, async () => {
+    await fig
+      .getByRole("combobox", { name: label, exact: true })
+      .selectOption(value);
+  });
 const SWE = CH.swe.anatomies as Obj;
 const UNC = CH.uncertainty.studies as Obj;
 const PAIR = CH.paired.studies as Obj;
@@ -125,6 +144,74 @@ const CASES: Case[] = [
     captions: caps(PAIR["5"].frames),
     choose: radio("5"),
   },
+  {
+    path: P6,
+    id: "judge-widget",
+    name: "position bias (default)",
+    captions: caps(JUDGE.position.frames),
+  },
+  {
+    path: P6,
+    id: "judge-widget",
+    name: "all three biases",
+    captions: caps(JUDGE.all.frames),
+    choose: radio("All three"),
+  },
+  {
+    path: P7,
+    id: "trajectory-widget",
+    name: "the recorded ReAct run (default)",
+    captions: caps(TRAJ["qwen-react"].frames),
+  },
+  {
+    path: P7,
+    id: "trajectory-widget",
+    name: "the sandboxed run",
+    captions: caps(TRAJ.guarded.frames),
+    choose: select("Trajectory", "guarded"),
+  },
+  {
+    path: P8,
+    id: "harness-widget",
+    name: "smaller model, tests, native, 16 turns (default)",
+    captions: HCAP["small|test|native|16"] as string[],
+  },
+  {
+    path: P8,
+    id: "harness-widget",
+    name: "larger model, read/edit only",
+    captions: HCAP["large|edit|native|4"] as string[],
+    choose: async (fig) => {
+      await radio("Larger")(fig);
+      await select("Scaffold", "edit|native|4")(fig);
+    },
+  },
+  {
+    path: P9,
+    id: "contamination-widget",
+    name: "30% leak (default)",
+    captions: caps(CONTAM["0.30"].frames),
+  },
+  {
+    path: P9,
+    id: "contamination-widget",
+    name: "60% leak",
+    captions: caps(CONTAM["0.60"].frames),
+    choose: radio("60%"),
+  },
+  {
+    path: P10,
+    id: "cost-widget",
+    name: "both models (default)",
+    captions: caps(COST.all),
+  },
+  {
+    path: P10,
+    id: "cost-widget",
+    name: "the larger model",
+    captions: caps(COST.large),
+    choose: radio("Larger"),
+  },
 ];
 
 for (const c of CASES) {
@@ -154,4 +241,24 @@ test("chapter 2: the verdict badge agrees with the reference's grade", async ({
     "data-resolved",
     SWE["overfit|weak"].grade.resolved ? "true" : "false",
   );
+});
+
+test("chapter 7: the verdicts at the end are the reference's", async ({
+  page,
+}) => {
+  await page.goto(P7);
+  const fig = page.getByTestId("trajectory-widget");
+  await expect(fig).toBeVisible({ timeout: ENGINE_TIMEOUT });
+  const max = await fig.getByTestId("scrub").getAttribute("max");
+  await fig.getByTestId("scrub").fill(max!);
+  const g = TRAJ["qwen-react"].grades as Obj;
+  for (const [label, key] of [
+    ["Outcome", "outcome"],
+    ["Self-report", "self_report"],
+    ["Trajectory", "trajectory"],
+  ] as const)
+    await expect(fig.locator(`[data-verdict='${label}']`)).toHaveAttribute(
+      "data-pass",
+      g[key] ? "true" : "false",
+    );
 });

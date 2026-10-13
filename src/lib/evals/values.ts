@@ -8,6 +8,7 @@
 import {
   CHAPTER_CONFIGS,
   E,
+  PRICES,
   runChapter,
   type Chapter,
   type Obj,
@@ -23,7 +24,8 @@ export type Fmt =
   | "f3"
   | "f4"
   | "raw"
-  | "pp1";
+  | "pp1"
+  | "usd";
 
 let TREE: Obj | null = null;
 
@@ -111,6 +113,79 @@ export function tree(): Obj {
   t.verdict = {};
   for (const [k, a] of Object.entries(t.swe.anatomies as Obj))
     t.verdict[k] = (a as Obj).grade.resolved ? "resolved" : "not resolved";
+  // chapter 6: each judge setting's summary, and the pass/fail grading
+  t.consts.judge = E.judge.JUDGE;
+  t.consts.grading = E.judge.GRADING;
+  t.jd = {};
+  for (const [k, r] of Object.entries(t.judge.study.settings as Obj)) {
+    const x = { ...(r as Obj) };
+    delete x.frames;
+    x.k1 = x.kappa1.kappa;
+    x.kd = x.kappa_d.kappa;
+    x.flipped = 1 - x.consistency;
+    t.jd[k] = x;
+  }
+  const gr = t.judge.grading as Obj;
+  t.gr = {
+    tests_rate: gr.tests_rate,
+    judge_rate: gr.judge_rate,
+    inflation: gr.judge_rate - gr.tests_rate,
+    kappa: gr.kappa.kappa,
+    calibration: gr.calibration,
+    corrected: gr.corrected,
+  };
+  // chapter 7: each trajectory's grades
+  t.tr = {};
+  for (const r of t.trajectory.rows as Obj[]) {
+    const x = { ...r };
+    delete x.frames;
+    x.n_unsafe = (r.unsafe as Obj[]).length;
+    t.tr[r.id] = x;
+  }
+  t.consts.tr_n = (t.trajectory.rows as Obj[]).length;
+  t.trx = t.trajectory.agree_with_outcome;
+  // chapter 8: each configuration, the spread, the paired comparisons, the example runs
+  t.hx = {};
+  for (const c of t.harness.configs as Obj[]) t.hx[c.id] = c;
+  t.spread = t.harness.spread;
+  t.pairs8 = {};
+  for (const p of t.harness.paired as Obj[]) t.pairs8[`${p.a} vs ${p.b}`] = p;
+  t.ex8 = {};
+  for (const e of t.harness.examples as Obj[]) {
+    const x = { ...e };
+    delete x.events;
+    delete x.files;
+    t.ex8[e.config] = x;
+  }
+  t.consts.scaffold = E.scaffold.SCAFFOLD;
+  t.consts.agents = {};
+  for (const a of E.scaffold.AGENTS) t.consts.agents[a.id] = a;
+  t.consts.prices = {};
+  for (const a of E.scaffold.AGENTS) {
+    const pr = PRICES[a.price as string] as Obj;
+    t.consts.prices[a.id] = pr;
+  }
+  t.consts.tasks = E.scaffold.TASKS.length;
+  // chapter 9: each leak level (without its rows)
+  t.consts.contam = E.contamination.CONTAM;
+  t.ct = {
+    survive: t.contamination.survive,
+    cutoff_q: (E.contamination.CONTAM.cutoff as number) - 1,
+  };
+  for (const [k, lv] of Object.entries(t.contamination.levels as Obj)) {
+    const x = { ...(lv as Obj) };
+    delete x.rows;
+    delete x.frames;
+    x.pre_rate = x.pre.k / x.pre.n;
+    x.post_rate = x.post.k / x.post.n;
+    x.gap = x.pre_rate - x.post_rate;
+    x.residual = x.rate_kept - x.clean_rate;
+    t.ct[k] = x;
+  }
+  // chapter 10
+  t.cx = { ...t.cost.cost, n_front: (t.cost.cost.front as string[]).length };
+  t.px = {};
+  for (const p of t.cost.cost.points as Obj[]) t.px[p.id] = p;
   TREE = t;
   return t;
 }
@@ -154,5 +229,7 @@ export function formatValue(v: unknown, fmt: Fmt): string {
       return n.toFixed(3);
     case "f4":
       return n.toFixed(4);
+    case "usd":
+      return `$${n.toFixed(4)}`;
   }
 }

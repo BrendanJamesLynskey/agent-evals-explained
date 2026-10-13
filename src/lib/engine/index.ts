@@ -4,16 +4,21 @@
  * evals module, whose statistics are tested against scipy and statsmodels in the engine's CI and
  * whose TS port reproduces the Python reference exactly. Nothing here runs a language model.
  *
- * Chapter 2's SWE-style task runs the engine's harness, which needs the 1.6 MB tokenizer: the
- * site does not load that in the browser. Its frames come from src/data/swe.json, written by the
- * Python reference (scripts/make_fixtures.py) and checked against the engine's own fixtures.
+ * Chapter 2's SWE-style task, chapter 7's graded trajectories and chapter 8's scaffold study run the
+ * engine's harness, which needs the 1.6 MB tokenizer: the site does not load that in the browser.
+ * Their data come from src/data/swe.json, trajectory.json and harness.json, written by the Python
+ * reference (scripts/make_fixtures.py) and checked against the engine's own fixtures (whose TS parity
+ * the engine's CI checks). Chapter 10 prices chapter 8's configurations with the engine's costStudy.
  */
 import CONFIGS from "@/data/chapter_configs.json";
+import HARNESS from "@/data/harness.json";
 import SWE from "@/data/swe.json";
+import TRAJ from "@/data/trajectory.json";
 
+import { PRICES } from "./vendor/data";
 import * as E from "./vendor/evals/index";
 
-export { E };
+export { E, PRICES };
 export type Obj = { [k: string]: any }; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export type Chapter = keyof typeof CONFIGS;
@@ -48,8 +53,26 @@ export function runChapter(chapter: Chapter): Obj {
       cfg: St.UNC,
     };
   }
-  const studies: Obj = {};
-  for (const m of St.PAIRED.runs as number[])
-    studies[String(m)] = St.pairedStudy(m);
-  return { studies, cfg: St.PAIRED };
+  if (chapter === "paired") {
+    const studies: Obj = {};
+    for (const m of St.PAIRED.runs as number[])
+      studies[String(m)] = St.pairedStudy(m);
+    return { studies, cfg: St.PAIRED };
+  }
+  if (chapter === "judge")
+    return { study: E.judge.judgeStudy(), grading: E.judge.gradingStudy() };
+  if (chapter === "trajectory") return TRAJ as Obj;
+  if (chapter === "harness") {
+    const h = HARNESS as Obj;
+    const captions: Obj = {};
+    for (const [id, rows] of Object.entries(h.rows as Obj))
+      captions[id] = (rows as Obj[]).map((r) => E.scaffold.captionRun(id, r));
+    return { ...h, captions };
+  }
+  if (chapter === "contamination") return E.contamination.contaminationStudy();
+  const cost = E.scaffold.costStudy(HARNESS as Obj);
+  const frames: Obj = {};
+  for (const a of ["all", "small", "large"])
+    frames[a] = E.scaffold.costFrames(cost, a === "all" ? null : a);
+  return { cost, frames };
 }

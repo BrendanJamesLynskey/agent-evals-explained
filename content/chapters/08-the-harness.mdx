@@ -1,0 +1,59 @@
+<HarnessWidget>
+  <Eq
+    label="The chance of fixing a task within k attempts: mu times one minus the k-th power of one minus s minus one minus s times mu, plus one minus mu times one minus the k-th power of one minus one minus s times mu, where s is the square root of rho"
+    tex="\begin{gathered} P(\text{fixed by try } \htmlClass{hl-tries}{k}) = \htmlClass{hl-mu}{\mu}\big[1 - (1 - s - (1 - s)\htmlClass{hl-mu}{\mu})^{\htmlClass{hl-tries}{k}}\big] \\ \quad + (1 - \htmlClass{hl-mu}{\mu})\big[1 - (1 - (1 - s)\htmlClass{hl-mu}{\mu})^{\htmlClass{hl-tries}{k}}\big] \\ s = \sqrt{\rho} \end{gathered}"
+  />
+</HarnessWidget>
+
+<Layer kind="concept">
+
+A leaderboard row names a model. The number beside it was produced by a model **inside a harness**: the tools it was given, the format its calls were written in, how many turns it was allowed, what happened when it wrote a broken call. Change the harness and the number changes, sometimes by more than the gap between models.
+
+The animation measures that with the engine's own harness. The "model" is a seeded stochastic policy, not a language model, so that every difference has a known cause: it reads the file, then edits the buggy line, getting it right with the item-response probability of chapter 1 (attempts on one task are correlated, so a model that misreads a task tends to keep misreading it). With a shell, it runs the tests after each edit and tries again until they pass or the turns run out; without one, it stops after its edit. Its calls come out malformed now and then, more often as ReAct text (<V of="consts.scaffold.malformed.react" fmt="pct" />) than as native tool calls (<V of="consts.scaffold.malformed.native" fmt="pct" />), and the harness feeds the error back. Each configuration runs all <V of="consts.tasks" fmt="int" /> tasks <V of="consts.scaffold.runs" fmt="int" /> times, <V of="hx.small|test|native|16.n" fmt="int" /> runs in all.
+
+**The same model, <V of="spread.small.range" fmt="pp1" /> apart.** The smaller model resolves <V of="spread.small.min" fmt="pct1" /> of the runs in its worst scaffold and <V of="spread.small.max" fmt="pct1" /> in its best (read and edit only, against a shell, native calls and 16 turns). The larger model moves by <V of="spread.large.range" fmt="pp1" />. Giving the smaller model a shell and 16 turns puts it at <V of="hx.small|test|native|16.rate" fmt="pct1" />, ahead of the larger model without a shell, at <V of="hx.large|edit|native|4.rate" fmt="pct1" />.
+
+**Is that a real difference?** Because every configuration sees the same draws for the same task and run (common random numbers), the runs pair up, and chapter 5's tools apply. Shell and 16 turns against read-and-edit, for the smaller model: <V of="pairs8.small|test|native|16 vs small|edit|native|4.table.n10" fmt="int" /> runs resolved only with the shell, <V of="pairs8.small|test|native|16 vs small|edit|native|4.table.n01" fmt="int" /> only without, McNemar $p$ below one in a million. The smaller model with a shell against the larger without: <V of="pairs8.small|test|native|16 vs large|edit|native|4.table.n10" fmt="int" /> against <V of="pairs8.small|test|native|16 vs large|edit|native|4.table.n01" fmt="int" />, $p$ = <V of="pairs8.small|test|native|16 vs large|edit|native|4.mcnemar.exact_p" fmt="f3" />, a paired 95% interval of <V of="pairs8.small|test|native|16 vs large|edit|native|4.compare.ci_paired.0" fmt="pct1" /> to <V of="pairs8.small|test|native|16 vs large|edit|native|4.compare.ci_paired.1" fmt="pct1" />. Suggestive, not settled: <V of="hx.small|test|native|16.n" fmt="int" /> runs on <V of="consts.tasks" fmt="int" /> tasks are not enough, which is chapter 4's lesson again.
+
+**Turns are a knob.** For the larger model with a shell, 16 turns instead of 4 resolve <V of="pairs8.large|test|native|16 vs large|test|native|4.table.n10" fmt="int" /> more runs and lose none. A paper that reports one budget and a paper that reports another are not measuring the same thing.
+
+**The format costs turns, not (here) success.** ReAct text breaks more often (<V of="hx.small|test|react|8.malformed" fmt="f2" /> malformed calls a run against <V of="hx.small|test|native|8.malformed" fmt="f2" /> at 8 turns), but the harness's error feedback lets the model try again, so the resolved rates differ by one run of <V of="hx.small|test|react|8.n" fmt="int" />. The breakage shows up as model calls and dollars instead; a harness that stopped at the first malformed call would turn it into failures.
+
+So report the harness with the score: tools, call format, turn and token budgets, retries, and how malformed output is handled. Comparing two models fairly means running both in the same harness, and preferably more than one.
+
+</Layer>
+
+<Callout kind="illustrative">
+
+The task suite (twelve one-line bugs), the two models' skills (<V of="consts.agents.small.theta" fmt="num" /> and <V of="consts.agents.large.theta" fmt="num" />), the within-task correlation (<V of="consts.scaffold.rho" fmt="num" />), the malformed-output rates and the policy itself are illustrative; the model is a seeded policy, not a language model, which is what lets every difference be traced to the harness. The harness is the engine's real one (prompts, tokenizer, parsing, error feedback, turn limits), so the turn counts and token counts are what that harness does with that policy.
+
+</Callout>
+
+<Layer kind="maths">
+
+Let $\mu$ be the chance one attempt at a task is right and $s = \sqrt{\rho}$. Each attempt copies the run's shared outcome $Z \sim \text{Bernoulli}(\mu)$ with probability $s$ and otherwise draws its own, so two attempts correlate at exactly $\rho$ (chapter 1's construction). Given $Z = 1$ an attempt is right with probability $s + (1 - s)\mu$; given $Z = 0$, with probability $(1 - s)\mu$; attempts are independent given $Z$. Summing over $Z$ gives the equation above for $k$ attempts. With $\rho = 0$ it is $1 - (1 - \mu)^k$, which reaches 1; with $\rho > 0$ the runs where the model has misread the task ($Z = 0$) improve only at rate $(1 - s)\mu$, so more turns help less and less. That is the flattening in the bars as the budget goes from 4 to 8 to 16.
+
+With a shell, a budget of $B$ turns allows about $(B - 2)/2$ attempts: one turn to read, then an edit and a test per attempt, and one to answer. Without a shell, $k = 1$ whatever the budget.
+
+</Layer>
+
+<Layer kind="code">
+
+How the simulated model decides each edit, cut from the vendored engine (`scaffold.ts`):
+
+```ts
+const c = this.rEdit.random();
+const own = this.rEdit.random();
+const pick = this.rEdit.random();
+const ok = c < this.s ? this.z : own < this.mu ? 1 : 0;
+```
+
+</Layer>
+
+<Callout kind="deeper">
+
+- [Agent Harnesses Explained](https://agent-harnesses-explained.vercel.app): every harness choice in this chapter (call formats, error feedback, turn limits, retries) explained and animated.
+- [LLM Hub: Coding Agents](https://brendanjameslynskey.github.io/LLM_Hub_Coding_Agents/): the scaffolds real coding agents use.
+- Carlos Jimenez et al., [SWE-bench](https://arxiv.org/abs/2310.06770) (2023): the paper reports each model under more than one retrieval setting, and the scores differ between them; the setting is part of the result.
+
+</Callout>

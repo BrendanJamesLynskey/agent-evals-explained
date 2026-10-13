@@ -18,3 +18,5 @@ src/data/
 src/lib/engine/vendor/
 .lighthouseci/
 .venv/
+# Recorded traces, vendored byte for byte (VENDORED.json holds the hashes).
+reference/traces/

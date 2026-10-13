@@ -3,5 +3,10 @@
   "swe": { "patches": ["fix", "overfit", "collateral"], "tests": ["thorough", "weak"] },
   "passk": {},
   "uncertainty": { "default_size": 200, "default_mode": "tasks" },
-  "paired": { "default_runs": 1 }
+  "paired": { "default_runs": 1 },
+  "judge": { "default_setting": "position" },
+  "trajectory": { "default": "qwen-react" },
+  "harness": { "default": "small|test|native|16" },
+  "contamination": { "default_leak": "0.30" },
+  "cost": {}
 }

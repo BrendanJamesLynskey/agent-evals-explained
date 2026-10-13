@@ -2,7 +2,8 @@
  * scripts/vendor-engine.ts
  *
  * Vendor Agent_Loop_Sim's TypeScript port (with its evals module), the evals module's parity
- * fixtures and its recorded results, at a pinned commit, and record which one:
+ * fixtures and its recorded results (both parts), and the recorded traces chapter 7 grades, at a
+ * pinned commit, and record which one:
  *
  *     pnpm vendor:engine <commit> [path/to/Agent_Loop_Sim]
  *
@@ -46,6 +47,16 @@ for (const p of list("ts/src"))
 // engine 1.8: the evals module's parity fixtures and its recorded results
 map["fixtures/evals_fixtures.json"] = "tests/fixtures/evals_fixtures.json";
 map["fixtures/evals_results.md"] = "src/data/evals_results.md";
+// engine 1.9: the graders, harness, cost and contamination fixtures and results, and the three recorded
+// traces chapter 7 replays (the Python reference reads them from here: they are not in the package)
+map["fixtures/evals2_fixtures.json"] = "tests/fixtures/evals2_fixtures.json";
+map["fixtures/evals2_results.md"] = "src/data/evals2_results.md";
+for (const t of [
+  "qwen-fix-test-native",
+  "qwen-fix-test-react",
+  "qwen-lookup-native",
+])
+  map[`traces/${t}.json`] = `reference/traces/${t}.json`;
 
 const files: Record<string, { from: string; sha256: string }> = {};
 for (const [from, to] of Object.entries(map)) {

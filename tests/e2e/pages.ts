@@ -9,6 +9,11 @@ export const PAGES = [
   "/learn/03-pass-at-k-and-pass-hat-k",
   "/learn/04-uncertainty",
   "/learn/05-comparing-two-agents",
+  "/learn/06-graders",
+  "/learn/07-trajectories",
+  "/learn/08-the-harness",
+  "/learn/09-contamination",
+  "/learn/10-cost-aware-evaluation",
 ] as const;
 
 export const ANIMATIONS = [
@@ -17,6 +22,11 @@ export const ANIMATIONS = [
   ["/learn/03-pass-at-k-and-pass-hat-k", "passk-widget"],
   ["/learn/04-uncertainty", "uncertainty-widget"],
   ["/learn/05-comparing-two-agents", "paired-widget"],
+  ["/learn/06-graders", "judge-widget"],
+  ["/learn/07-trajectories", "trajectory-widget"],
+  ["/learn/08-the-harness", "harness-widget"],
+  ["/learn/09-contamination", "contamination-widget"],
+  ["/learn/10-cost-aware-evaluation", "cost-widget"],
 ] as const;
 
 /** The engine runs in the page after it loads: allow for a slow runner. */

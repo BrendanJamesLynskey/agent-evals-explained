@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { SECTIONS } from "@/lib/mdx/sections";
 import { formatValue, lookup } from "@/lib/evals/values";
-import { PLANNED } from "@/lib/planned";
 import {
   CONTEXT_URL,
   DECODER_URL,
@@ -49,8 +48,10 @@ export default function HomePage(): JSX.Element {
             quoted on, from their papers; <em>pass@k</em> against{" "}
             <em>pass^k</em>, best of k against reliable every time; intervals
             and which of them keep their promise; why two scores a few tenths
-            apart are a tie; and how comparing two agents on the same tasks
-            gives a sharper answer for free.
+            apart are a tie; how comparing two agents on the same tasks gives a
+            sharper answer for free; then the grader itself (LLM judges and
+            their biases, grading the whole trajectory), the harness the score
+            was measured in, leaked tasks, and what each point of success costs.
           </p>
           <p className="mt-4 max-w-2xl text-neutral-600 dark:text-neutral-300">
             The animations are driven by{" "}
@@ -62,8 +63,10 @@ export default function HomePage(): JSX.Element {
             estimators, each tested against scipy and statsmodels. On a{" "}
             {v("consts.tie.n", "int")}-task benchmark, two agents run on
             separate tasks must differ by about {v("tie.mde_unpaired", "pp1")}{" "}
-            before a test at 80% power reliably tells them apart. No language
-            model runs anywhere.
+            before a test at 80% power reliably tells them apart; and the same
+            simulated model scores from {v("spread.small.min", "pct")} to{" "}
+            {v("spread.small.max", "pct")} depending only on its harness. No
+            language model runs anywhere.
           </p>
         </div>
         <figure className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
@@ -147,9 +150,6 @@ export default function HomePage(): JSX.Element {
           </Link>
         ))}
       </nav>
-      <p className="mt-8 text-sm text-neutral-600 dark:text-neutral-400">
-        Coming next: {PLANNED.join("; ")}.
-      </p>
       <p className="mt-12 text-sm text-neutral-600 dark:text-neutral-400">
         The fifth of a family of agent sites, after{" "}
         <a href={HARNESSES_URL} className={LINK}>

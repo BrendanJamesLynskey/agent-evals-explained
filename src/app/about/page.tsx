@@ -48,10 +48,10 @@ export default function AboutPage(): JSX.Element {
           Agent Evals Explained is about measuring agents: what an eval is, the
           benchmarks agents are quoted on (described from their papers), pass@k
           against pass^k, the uncertainty in a score and how many tasks it takes
-          to shrink it, and comparing two agents. Five more chapters (graders
-          and judges, trajectories, the harness, contamination and cost) are
-          coming. Every chapter is built around an animation. It is the fifth of
-          a family of agent sites, after{" "}
+          to shrink it, comparing two agents, graders and LLM judges, grading
+          whole trajectories, the harness as part of the result, contamination,
+          and cost. Every chapter is built around an animation. It is the fifth
+          of a family of agent sites, after{" "}
           <a href={HARNESSES_URL} className={A}>
             Agent Harnesses Explained
           </a>
@@ -101,7 +101,14 @@ export default function AboutPage(): JSX.Element {
           takes. Because the truth is known, every interval can be checked
           against it. Chapter 2&apos;s task is SWE-bench&apos;s grading rule run
           on a three-function toy repository by the engine&apos;s harness with a
-          scripted model.
+          scripted model. Chapter 6&apos;s judge is a Bradley–Terry choice with
+          three bias terms; chapter 7 grades the engine&apos;s own traces,
+          including three recorded once from Qwen2.5-1.5B-Instruct on a CPU and
+          replayed token for token; chapter 8 runs a seeded stochastic policy
+          (not a language model) through the engine&apos;s real harness under
+          sixteen configurations, and chapter 10 prices those runs with the
+          harness&apos;s token accounting and a dated price table; chapter 9
+          leaks synthetic tasks whose texts are random token ids.
         </p>
 
         <h2>The engine, and how it is tested</h2>
@@ -123,6 +130,9 @@ export default function AboutPage(): JSX.Element {
             McNemar&apos;s test (exact and corrected), the two-proportion test
             and the paired and Welch <em>t</em> statistics; pass@k and pass^k
             against exact combinatorics; the power formulas against simulation;
+            Cohen&apos;s κ against statsmodels, the judge correction&apos;s
+            standard error against finite differences and its coverage by
+            simulation, and the Pareto front against its definition;
           </li>
           <li>
             the special functions underneath (exp, ln Γ, the incomplete beta
@@ -177,6 +187,15 @@ export default function AboutPage(): JSX.Element {
             Chapter 2&apos;s repository, issue, patches and agent. The benchmark
             table quotes each paper at its release; benchmarks are revised, so
             check the current version before comparing.
+          </li>
+          <li>
+            Chapters 6 to 10: the judge&apos;s biases and noise, the pass/fail
+            judge&apos;s sensitivity and specificity, the trajectory
+            score&apos;s weights, the task suite, both models&apos; skills and
+            the pairing of those skills with two list prices, the
+            malformed-output rates, and every leak, paraphrase and memorisation
+            rate. Token counts and costs are what the engine&apos;s harness
+            accounts for those simulated runs.
           </li>
           <li>
             The statistics are not illustrative: they are the standard
