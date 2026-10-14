@@ -54,7 +54,7 @@ describe("vendored engine", () => {
     const fx = JSON.parse(
       readFileSync(join(ROOT, "tests/fixtures/evals_fixtures.json"), "utf8"),
     ) as Obj;
-    expect(fx.engine).toBe("1.9.0");
+    expect(fx.engine).toBe("1.11.1");
     for (const [x, v] of fx.mathx.exp) expect(E.mathx.exp(x)).toBe(v);
     for (const [p, v] of fx.mathx.norm_ppf) expect(E.mathx.normPpf(p)).toBe(v);
     for (const [k, n, w, wi, ex] of fx.stats.intervals) {
@@ -76,7 +76,7 @@ describe("vendored engine", () => {
     const fx = JSON.parse(
       readFileSync(join(ROOT, "tests/fixtures/evals2_fixtures.json"), "utf8"),
     ) as Obj;
-    expect(fx.engine).toBe("1.9.0");
+    expect(fx.engine).toBe("1.11.1");
     for (const [t, v] of fx.stats.kappa)
       expect(E.stats.cohenKappa(t)).toEqual(v);
     for (const [pts, v] of fx.stats.pareto)

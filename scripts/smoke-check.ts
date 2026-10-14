@@ -39,6 +39,7 @@ const SWITCH = [
   'href="https://agent-evals-explained.vercel.app"',
   'href="https://agent-security-explained.vercel.app"',
   'data-site-place="evals"',
+  'data-site-brand="true" class="focus-ring whitespace-nowrap rounded text-sm font-medium tracking-tight" href="/">Agent Evals Explained</a>',
   'data-site-key="inference"',
   'href="https://gpu-kernels-explained.vercel.app"',
 ];
