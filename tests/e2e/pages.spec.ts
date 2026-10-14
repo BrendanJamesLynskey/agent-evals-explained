@@ -169,7 +169,12 @@ test("the site switch: four tracks, and the button and header say where you are"
         "https://agent-evals-explained.vercel.app",
       ],
       // not live until its own brief switches it on in every site's menu
-      ["security", "Security", "Threats and defences", ""],
+      [
+        "security",
+        "Security",
+        "Threats and defences",
+        "https://agent-security-explained.vercel.app",
+      ],
     ] as const;
     expect(
       await panel
