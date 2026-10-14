@@ -18,7 +18,7 @@ n-gram overlap, canary strings and a time split each see. Chapter 10 puts every 
 plane: the Pareto front and dollars per solved task.
 
 Each chapter is built around an animation, with the maths beside the picture, driven by
-[Agent_Loop_Sim](https://github.com/BrendanJamesLynskey/Agent_Loop_Sim)'s **evals** module (engine 1.9.0),
+[Agent_Loop_Sim](https://github.com/BrendanJamesLynskey/Agent_Loop_Sim)'s **evals** module (engine 1.9.0; vendored at 1.11.1),
 identically in Python and in the browser: a synthetic benchmark under a two-parameter item-response model, the
 standard estimators (each tested against scipy and statsmodels in the engine's CI), a simulated judge, a trajectory
 grader, a stochastic model run through the engine's real harness, and a contamination model. No language model runs on

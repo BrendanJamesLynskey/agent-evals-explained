@@ -28,7 +28,7 @@ def test_the_reference_reproduces_the_engine_fixtures():
     from agent_loop_sim.evals import study as St
 
     fx = json.loads((ROOT / "tests/fixtures/evals_fixtures.json").read_text())
-    assert fx["engine"] == "1.9.0"
+    assert fx["engine"] == "1.11.1"
     assert json.loads(json.dumps(St.loop_study())) == fx["loop"]
     assert json.loads(json.dumps(St.tie_study())) == fx["tie"]
     assert json.loads(json.dumps(St.paired_study(1))) == fx["paired"]["1"]
@@ -51,7 +51,7 @@ def test_the_reference_reproduces_the_engine_fixtures_part_2():
     from agent_loop_sim.evals import judge as J
 
     fx = json.loads((ROOT / "tests/fixtures/evals2_fixtures.json").read_text())
-    assert fx["engine"] == "1.9.0"
+    assert fx["engine"] == "1.11.1"
     assert json.loads(json.dumps(J.grading_study())) == fx["grading"]
     assert json.loads(json.dumps(C.contamination_study()))["levels"]["0.30"] == fx["contamination"]["levels"]["0.30"]
 
