@@ -20,6 +20,13 @@ import { formatValue, lookup } from "@/lib/evals/values";
 import VENDORED from "@/lib/engine/vendor/VENDORED.json";
 import { SECTIONS } from "@/lib/mdx/sections";
 
+/** The author credit: the last line of the About page (brief 35). */
+const CREDIT = [
+  'data-author-credit="true"',
+  "Written and built by",
+  'href="https://github.com/BrendanJamesLynskey">Brendan Lynskey</a>',
+];
+
 type Result = { path: string; ok: boolean; detail: string };
 
 const headers: Record<string, string> = process.env.VERCEL_BYPASS
@@ -81,7 +88,11 @@ async function main(): Promise<void> {
       formatValue(lookup("tie.n_unpaired"), "int"),
       formatValue(lookup("loopx.round3.p"), "pct1"),
     ]),
-    checkPage(base, "/about", ["The engine", VENDORED.commit.slice(0, 7)]),
+    checkPage(base, "/about", [
+      ...CREDIT,
+      "The engine",
+      VENDORED.commit.slice(0, 7),
+    ]),
     checkPage(
       base,
       "/learn",
