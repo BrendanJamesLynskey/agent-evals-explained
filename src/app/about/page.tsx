@@ -9,6 +9,7 @@ import DATA from "@/lib/engine/vendor/evals_data.json";
 import { formatValue, lookup } from "@/lib/evals/values";
 import {
   ARXIV,
+  AUTHOR,
   CONTEXT_URL,
   DECODER_URL,
   ENGINE_URL,
@@ -226,6 +227,15 @@ export default function AboutPage(): JSX.Element {
           .
         </p>
       </div>
+      <p
+        className="mt-12 text-sm text-neutral-600 dark:text-neutral-400"
+        data-author-credit
+      >
+        Written and built by{" "}
+        <a className={A} href={AUTHOR.url}>
+          {AUTHOR.name}
+        </a>
+      </p>
     </main>
   );
 }
