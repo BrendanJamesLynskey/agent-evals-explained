@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s · Agent Evals Explained",
   },
   description:
-    "How to tell whether an agent is good, and how sure you can be: the benchmarks from their papers, pass@k against pass^k, intervals and their coverage, paired comparisons and McNemar's test, power and sample size, each animated by a tested engine on a synthetic item-response benchmark.",
+    "How to tell whether an agent is good, and how sure you can be: the benchmarks from their papers, pass@k against pass^k, intervals and their coverage, paired comparisons and McNemar's test, power and sample size, graders, trajectories, the harness, contamination and cost-aware evaluation, each animated by a tested engine on a synthetic item-response benchmark.",
 };
 
 export default function RootLayout({
