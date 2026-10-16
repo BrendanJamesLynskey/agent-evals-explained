@@ -13,7 +13,7 @@ import { PAPERS_07 } from "@/lib/site";
 export const metadata = {
   title: "Learn",
   description:
-    "Chapters on evaluating agents: what an eval is, the benchmarks, pass@k and pass^k, uncertainty and sample size, and comparing two agents, each built around an animation driven by a tested engine.",
+    "Chapters on evaluating agents: what an eval is, the benchmarks, pass@k and pass^k, uncertainty, comparing two agents, graders, trajectories, the harness, contamination and cost-aware evaluation, each built around an animation driven by a tested engine.",
 };
 
 export default function LearnIndex(): JSX.Element {
