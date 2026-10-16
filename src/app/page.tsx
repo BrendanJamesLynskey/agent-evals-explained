@@ -1,5 +1,7 @@
+import type { Route } from "next";
 import Link from "next/link";
 
+import { CheckedStrip, StartButton } from "@/components/ui/Landing";
 import { SECTIONS } from "@/lib/mdx/sections";
 import { formatValue, lookup } from "@/lib/evals/values";
 import { ENGINE_URL } from "@/lib/site";
@@ -30,37 +32,21 @@ export default function HomePage(): JSX.Element {
       <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
         Is the agent good, and how sure are you?
       </h1>
-      <div className="mt-8 grid items-center gap-8 md:grid-cols-[1fr_minmax(0,22rem)]">
+      <div className="mt-6 grid items-start gap-8 md:grid-cols-[1fr_minmax(0,22rem)]">
         <div>
           <p className="max-w-2xl text-lg text-neutral-600 dark:text-neutral-300">
-            An agent&apos;s score is a <strong>measurement</strong>: a sample of
-            tasks, a few noisy runs on each, and a grader that can be fooled.
-            This site takes the measurement apart. The benchmarks agents are
-            quoted on, from their papers; <em>pass@k</em> against{" "}
-            <em>pass^k</em>, best of k against reliable every time; intervals
-            and which of them keep their promise; why two scores a few tenths
-            apart are a tie; how comparing two agents on the same tasks gives a
-            sharper answer for free; then the grader itself (LLM judges and
-            their biases, grading the whole trajectory), the harness the score
-            was measured in, leaked tasks, and what each point of success costs.
+            An interactive guide to measuring agents honestly: pass rates,
+            uncertainty, comparisons and graders, on a synthetic benchmark whose
+            truth is known.
           </p>
-          <p className="mt-4 max-w-2xl text-neutral-600 dark:text-neutral-300">
-            The animations are driven by{" "}
-            <a href={ENGINE_URL} className={LINK}>
-              Agent_Loop_Sim
-            </a>
-            &apos;s evals module, identically in Python and in your browser: a
-            synthetic benchmark under an item-response model, and the standard
-            estimators, each tested against scipy and statsmodels. On a{" "}
-            {v("consts.tie.n", "int")}-task benchmark, two agents run on
-            separate tasks must differ by about {v("tie.mde_unpaired", "pp1")}{" "}
-            before a test at 80% power reliably tells them apart; and the same
-            simulated model scores from {v("spread.small.min", "pct")} to{" "}
-            {v("spread.small.max", "pct")} depending only on its harness. No
-            language model runs anywhere.
-          </p>
+          <div className="mt-6">
+            <StartButton href={`/learn/${SECTIONS[0]!.slug}` as Route} />
+          </div>
         </div>
-        <figure className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
+        <figure
+          data-hero-figure
+          className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
+        >
           <svg
             viewBox={`0 0 ${W} ${H}`}
             className="h-auto w-full"
@@ -124,6 +110,43 @@ export default function HomePage(): JSX.Element {
           </figcaption>
         </figure>
       </div>
+      <CheckedStrip href="/about#engine">
+        The estimators are tested against scipy and statsmodels on a synthetic
+        benchmark whose truth is known, and the TypeScript engine in your
+        browser reproduces every Python fixture bit for bit.
+      </CheckedStrip>
+      <section aria-labelledby="learn-heading" className="mt-12">
+        <h2 id="learn-heading" className="text-xl font-semibold tracking-tight">
+          What you&apos;ll learn
+        </h2>
+        <p className="mt-4 max-w-2xl text-neutral-600 dark:text-neutral-300">
+          An agent&apos;s score is a <strong>measurement</strong>: a sample of
+          tasks, a few noisy runs on each, and a grader that can be fooled. This
+          site takes the measurement apart. The benchmarks agents are quoted on,
+          from their papers; <em>pass@k</em> against <em>pass^k</em>, best of k
+          against reliable every time; intervals and which of them keep their
+          promise; why two scores a few tenths apart are a tie; how comparing
+          two agents on the same tasks gives a sharper answer for free; then the
+          grader itself (LLM judges and their biases, grading the whole
+          trajectory), the harness the score was measured in, leaked tasks, and
+          what each point of success costs.
+        </p>
+        <p className="mt-4 max-w-2xl text-neutral-600 dark:text-neutral-300">
+          The animations are driven by{" "}
+          <a href={ENGINE_URL} className={LINK}>
+            Agent_Loop_Sim
+          </a>
+          &apos;s evals module, identically in Python and in your browser: a
+          synthetic benchmark under an item-response model, and the standard
+          estimators, each tested against scipy and statsmodels. On a{" "}
+          {v("consts.tie.n", "int")}-task benchmark, two agents run on separate
+          tasks must differ by about {v("tie.mde_unpaired", "pp1")} before a
+          test at 80% power reliably tells them apart; and the same simulated
+          model scores from {v("spread.small.min", "pct")} to{" "}
+          {v("spread.small.max", "pct")} depending only on its harness. No
+          language model runs anywhere.
+        </p>
+      </section>
       <nav aria-label="Chapters" className="mt-12 grid gap-4 sm:grid-cols-2">
         {SECTIONS.map((s, i) => (
           <Link

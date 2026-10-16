@@ -6,3 +6,5 @@ src/lib/engine/vendor/VENDORED.json.
 
 The vendored engine also contains the Qwen2.5 tokenizer port (src/lib/engine/vendor/tokenizer.ts), which
 this site does not load in the browser.
+
+The link-preview cards are set in Noto Sans and Noto Sans Mono (subsets in src/app/_og/), under the SIL Open Font License 1.1 (src/app/_og/OFL.txt).

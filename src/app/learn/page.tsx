@@ -9,12 +9,13 @@ import Link from "next/link";
 
 import { SECTIONS } from "@/lib/mdx/sections";
 import { PAPERS_07 } from "@/lib/site";
+import { withShare } from "@/lib/share";
 
-export const metadata = {
+export const metadata = withShare("/learn", {
   title: "Learn",
   description:
     "Chapters on evaluating agents: what an eval is, the benchmarks, pass@k and pass^k, uncertainty, comparing two agents, graders, trajectories, the harness, contamination and cost-aware evaluation, each built around an animation driven by a tested engine.",
-};
+});
 
 export default function LearnIndex(): JSX.Element {
   return (
