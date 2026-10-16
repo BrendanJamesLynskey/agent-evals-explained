@@ -10,10 +10,11 @@ import type { ReactNode } from "react";
 
 import { SiteHeader } from "@/components/ui/SiteHeader";
 import { SITE_URL } from "@/lib/site";
+import { withShare } from "@/lib/share";
 
 import "./globals.css";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withShare("/", {
   metadataBase: new URL(SITE_URL),
   title: {
     default: "Agent Evals Explained",
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   },
   description:
     "How to tell whether an agent is good, and how sure you can be: the benchmarks from their papers, pass@k against pass^k, intervals and their coverage, paired comparisons and McNemar's test, power and sample size, graders, trajectories, the harness, contamination and cost-aware evaluation, each animated by a tested engine on a synthetic item-response benchmark.",
-};
+});
 
 export default function RootLayout({
   children,

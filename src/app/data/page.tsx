@@ -10,12 +10,13 @@ import type { Obj } from "@/lib/engine";
 import { lookup, tree } from "@/lib/evals/values";
 import { fmtInt, pct } from "@/lib/format";
 import { ENGINE_URL, repoFile } from "@/lib/site";
+import { withShare } from "@/lib/share";
 
-export const metadata = {
+export const metadata = withShare("/data", {
   title: "Data",
   description:
     "The evals engine's recorded run: the score as runs accumulate, pass@k and pass^k by k, interval coverage over reruns, exact coverage, sample sizes, two agents compared, the SWE-style task's verdicts, the simulated judge, graded trajectories, the harness study, contamination and cost.",
-};
+});
 
 const A =
   "focus-ring rounded text-accent underline underline-offset-2 dark:text-indigo-300";

@@ -23,12 +23,13 @@ import {
   TRADEOFFS_URL,
   repoFile,
 } from "@/lib/site";
+import { withShare } from "@/lib/share";
 
-export const metadata = {
+export const metadata = withShare("/about", {
   title: "About",
   description:
     "What Agent Evals Explained's engine computes, how its statistics are tested against scipy and statsmodels, what is illustrative, and how Python and the browser are checked to agree exactly.",
-};
+});
 
 const A =
   "focus-ring rounded text-accent underline underline-offset-2 dark:text-indigo-300";
@@ -112,7 +113,7 @@ export default function AboutPage(): JSX.Element {
           leaks synthetic tasks whose texts are random token ids.
         </p>
 
-        <h2>The engine, and how it is tested</h2>
+        <h2 id="engine">The engine, and how it is tested</h2>
         <p>
           The engine is{" "}
           <a href={ENGINE_URL} className={A}>
