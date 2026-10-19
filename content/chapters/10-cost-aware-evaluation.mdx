@@ -9,11 +9,17 @@
 
 A success rate without a cost is half a result. An agent that resolves a few more tasks by running ten times as long, or by calling a model that costs five times as much per token, may be the wrong choice; and two agents that score the same may differ several-fold in what each solved task costs. A cost-aware evaluation puts every configuration on a plane, **cost per task** against **success rate**, and asks which ones are worth considering at all.
 
+<span id="ev-front" />
+
 The animation does that for chapter 8's sixteen configurations: two models (priced at <V of="consts.prices.small.input" fmt="num" /> and <V of="consts.prices.small.output" fmt="num" /> dollars per million input and output tokens, and at <V of="consts.prices.large.input" fmt="num" /> and <V of="consts.prices.large.output" fmt="num" />), with or without a shell, native calls or ReAct text, 4 to 16 turns. Every cost is the harness's own accounting of the tokens each run used. The points arrive cheapest first, and the line is the **Pareto front**: the configurations that nothing else beats on both cost and success. <V of="cx.n_front" fmt="int" /> of the sixteen are on it.
+
+<span id="ev-off-front" />
 
 **Off the front.** The larger model without a shell resolves <V of="px.large|edit|native|4.rate" fmt="pct1" /> of runs at <V of="px.large|edit|native|4.cost" fmt="usd" /> a task. The smaller model with a shell, ReAct calls and 8 turns resolves <V of="px.small|test|react|8.rate" fmt="pct1" /> for <V of="px.small|test|react|8.cost" fmt="usd" />: as many, for less. No budget makes the first a sensible choice.
 
 **Cheapest per solved task is not the answer either.** The smaller model with no shell has the lowest cost per solved task, <V of="px.small|edit|native|4.per_solved" fmt="usd" />, because it gives up after one edit; it also resolves only <V of="px.small|edit|native|4.rate" fmt="pct1" />. The highest success, <V of="px.large|test|native|16.rate" fmt="pct1" />, costs <V of="px.large|test|native|16.per_solved" fmt="usd" /> per solved task. Which point to pick depends on what an unsolved task costs you: a person's time to do it by hand, a customer who leaves. Put that price on the chart and the choice follows.
+
+<span id="ev-turns" />
 
 **More turns cost more per solved task here.** For the smaller model with a shell, going from 8 to 16 turns lifts the rate from <V of="px.small|test|native|8.rate" fmt="pct1" /> to <V of="px.small|test|native|16.rate" fmt="pct1" />, and the cost per solved task from <V of="px.small|test|native|8.per_solved" fmt="usd" /> to <V of="px.small|test|native|16.per_solved" fmt="usd" />. The runs that are still failing at 8 turns are mostly the ones where the model has misread the task, and they spend the extra turns failing (chapter 8's maths), on prompts that grow with every turn.
 
@@ -61,3 +67,66 @@ for (let j = 0; j < points.length; j++) {
 - [Agent Orchestration Explained](https://agent-orchestration-explained.vercel.app): what multi-agent patterns cost per task, and reliability against retries.
 
 </Callout>
+
+<CheckYourself>
+
+<Check
+  id="ev10-q1"
+  n={1}
+  input="number"
+  of="cx.n_front"
+  fmt="int"
+  q="Of the sixteen configurations, how many are on the Pareto front of cost per task against success?"
+  href="#ev-front"
+  more="The Pareto front"
+>
+  The ones nothing else beats on both cost and success. With intervals this
+  wide, some are on the front because of the draw.
+</Check>
+
+<Check
+  id="ev10-q2"
+  n={2}
+  choices={[
+    "The larger model without a shell",
+    "The smaller model with a shell, ReAct calls and 8 turns",
+  ]}
+  answer={1}
+  q="Both resolve the same share of runs. Which costs less per task?"
+  href="#ev-off-front"
+  more="Off the front"
+>
+  The smaller one, <V of="px.small|test|react|8.cost" fmt="usd" /> against
+  <V of="px.large|edit|native|4.cost" fmt="usd" />: as many solved, for less.
+  No budget makes the first a sensible choice.
+</Check>
+
+<Check
+  id="ev10-q3"
+  n={3}
+  choices={["It falls", "It stays the same", "It rises"]}
+  answer={2}
+  q="For the smaller model with a shell, going from 8 to 16 turns: what happens to the cost per solved task?"
+  href="#ev-turns"
+  more="More turns"
+>
+  It rises, from <V of="px.small|test|native|8.per_solved" fmt="usd" /> to
+  <V of="px.small|test|native|16.per_solved" fmt="usd" />: the runs still
+  failing at 8 turns are mostly stuck, and spend the extra turns failing on
+  ever longer prompts.
+</Check>
+
+</CheckYourself>
+
+<Remember>
+
+- A success rate without a cost is half a result: plot cost per task against success.
+- Keep only the Pareto front; everything else is beaten on both.
+- The lowest cost per solved task is not the answer: price an unsolved task and choose.
+- With correlated attempts, more retries raise the cost per solved task.
+
+<Keep>
+  Cost per solved task = mean cost per task ÷ success rate.
+</Keep>
+
+</Remember>

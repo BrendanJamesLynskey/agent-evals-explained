@@ -9,6 +9,8 @@
 
 The animation is one task in the style of [SWE-bench](https://arxiv.org/abs/2310.06770), the benchmark most coding agents are quoted on. The agent gets a repository at a **base commit** and an **issue** written by a person. It reads, edits and runs things, then stops; its **patch** is the difference between the repository it leaves and the base commit. Only then are the **hidden tests** added and run. SWE-bench's dataset names them: **FAIL_TO_PASS** tests were written with the real fix and fail on the base commit, so they check the issue is fixed; **PASS_TO_PASS** tests passed before, so they check nothing else broke. The task is **resolved** only if every one of both kinds passes.
 
+<span id="ev-patches" />
+
 The three patches show what the grader can and cannot see. The right fix passes. A patch that breaks `sub()` while fixing `add()` fails a PASS_TO_PASS test, even though the agent said it had fixed the arithmetic. The overfit patch, `return a * b - 1`, gives $\text{add}(2, 3) = 5$ and nothing else right: the thorough hidden tests catch it, but with the **weak** tests (only the example from the issue) it is scored as <V of="verdict.overfit|weak" fmt="raw" />. A grader is only as good as its tests, and the agent's own report counts for nothing.
 
 ## The benchmarks, from their papers
@@ -37,6 +39,8 @@ The repository is the engine's three-function toy, the issue and the three patch
 
 <Layer kind="maths">
 
+<span id="ev-grader-bias" />
+
 Grading turns each task into one bit, $x_t \in \{0, 1\}$, and the score is their mean, $\hat p = \frac{1}{T}\sum_t x_t$. Every grader error moves that bit. If a fraction $f_+$ of failed tasks is wrongly passed (weak tests) and a fraction $f_-$ of solved ones is wrongly failed (flaky tests, a broken environment), the expected score is $p(1 - f_-) + (1-p)f_+$ instead of $p$. A biased grader is not noise that more tasks average away: chapter 4's intervals would tighten around the wrong number.
 
 </Layer>
@@ -60,3 +64,67 @@ const keep = [blocks[0]!, ...blocks.slice(1).filter((b) => b.startsWith(`def ${n
 - [SWE-bench-Live](https://arxiv.org/abs/2505.23419): 1,319 tasks from issues created since 2024, built to resist contamination.
 
 </Callout>
+
+<CheckYourself>
+
+<Check
+  id="ev02-q1"
+  n={1}
+  choices={["Resolved", "Not resolved"]}
+  answer={0}
+  q="The overfit patch (return a * b - 1) graded with the weak tests, only the example from the issue: what is the verdict?"
+  href="#ev-patches"
+  more="Three patches"
+>
+  Resolved: it gives the one value the weak tests check. The thorough hidden
+  tests catch it. A grader is only as good as its tests.
+</Check>
+
+<Check
+  id="ev02-q2"
+  n={2}
+  choices={[
+    "Resolved: add() is fixed",
+    "Not resolved: a PASS_TO_PASS test fails",
+    "Resolved, because the agent said so",
+  ]}
+  answer={1}
+  q="A patch fixes add() but breaks sub(). What does SWE-bench's rule say?"
+  href="#ev-patches"
+  more="Three patches"
+>
+  A task is resolved only if every FAIL_TO_PASS test passes and every
+  PASS_TO_PASS test still passes. The agent's own report counts for nothing.
+</Check>
+
+<Check
+  id="ev02-q3"
+  n={3}
+  choices={[
+    "Yes: errors average out over tasks",
+    "No: the intervals tighten around the wrong number",
+  ]}
+  answer={1}
+  q="A grader wrongly passes some failed tasks. Do more tasks fix the score?"
+  href="#ev-grader-bias"
+  more="A biased grader"
+>
+  No. The expected score becomes $p(1 - f_-) + (1 - p) f_+$: a bias, not
+  noise. More tasks only make you more confident in the wrong number.
+</Check>
+
+</CheckYourself>
+
+<Remember>
+
+- SWE-bench-style grading: hidden FAIL_TO_PASS tests check the fix; PASS_TO_PASS tests check nothing else broke.
+- Weak tests pass wrong patches; the agent's own claim is worth nothing.
+- Every benchmark has known issues: weak graders, the harness, contamination.
+- A biased grader is not noise: more tasks do not average it away.
+
+<Keep>
+  Before comparing scores, check the benchmark's version, its grader and its
+  known issues.
+</Keep>
+
+</Remember>
