@@ -12,6 +12,8 @@ Agents are not deterministic: run one twice on the same task and it may pass onc
 - **pass@k**: if the agent gets $k$ tries, does **some one** of them pass? This is the right question when something can pick the good attempt for you: hidden tests you are allowed to run, a verifier, a person reviewing $k$ drafts. It was popularised for code by [Chen et al. (2021)](https://arxiv.org/abs/2107.03374) with HumanEval.
 - **pass^k** ("pass hat k"): do **all** $k$ tries pass? This is what a user feels who runs the agent again and again and needs it to work every time. [τ-bench](https://arxiv.org/abs/2406.12045) introduced it for agents, and found agents that solved fewer than half of its tasks on one try were far less consistent over several: its retail pass^8 was under 25%.
 
+<span id="ev-apart" />
+
 At $k = 1$ they are the same number. Then they pull apart. In the animation (<V of="consts.passk.tasks" fmt="int" /> tasks, <V of="consts.passk.n" fmt="int" /> samples each), pass@1 is <V of="pk.1.pass_at_k" fmt="pct1" />; by $k = 10$, pass@10 has climbed to <V of="pk.10.pass_at_k" fmt="pct1" /> and pass^10 has fallen to <V of="pk.10.pass_hat_k" fmt="pct1" /> (the generator's true values for these tasks: <V of="pk.10.true_at" fmt="pct1" /> and <V of="pk.10.true_hat" fmt="pct1" />). The same agent is "<V of="pk.10.pass_at_k" fmt="pct" /> at ten tries" and "<V of="pk.10.pass_hat_k" fmt="pct" /> reliable over ten tries". Which one you report should depend on how the agent will be used, and a headline pass@k for an agent that has to work every time is the wrong number.
 
 The tasks in the grid are sorted by how many of their ten samples pass. pass^k is carried by the tasks that **always** pass; pass@k by every task that **ever** passes. Raise the within-task correlation and runs on a task become more alike: pass@k grows more slowly (a task that fails tends to fail again) and pass^k decays more slowly.
@@ -29,6 +31,8 @@ Thirty tasks from the synthetic population, an agent of skill $\theta$ = <V of="
 Take $n$ samples on a task, of which $c$ pass, and pick $k$ of them at random without replacement. All $k$ fail with probability $\binom{n-c}{k}/\binom{n}{k}$, and all $k$ pass with probability $\binom{c}{k}/\binom{n}{k}$. If every sample passes independently with probability $\mu$, then $c \sim \text{Binomial}(n, \mu)$ and the expectations over $c$ are exactly $(1-\mu)^k$ and $\mu^k$: both estimators are **unbiased** for any $k \le n$, and use all $n$ samples rather than only $k$. Chen et al. compute the first as a product, which never forms the huge binomial coefficients:
 
 $$\frac{\binom{n-c}{k}}{\binom{n}{k}} = \prod_{i=n-c+1}^{n}\left(1 - \frac{k}{i}\right).$$
+
+<span id="ev-plugin" />
 
 The tempting shortcut, $1 - (1 - c/n)^k$, is **biased low**: $x \mapsto (1-x)^k$ is convex, so by Jensen's inequality $\mathbb{E}[(1 - \hat\mu)^k] \ge (1-\mu)^k$. The engine checks this on one task with $\mu$ = <V of="passk.bias.cfg.mu" fmt="num" />, $n$ = <V of="passk.bias.cfg.n" fmt="int" /> and $k$ = <V of="passk.bias.cfg.k" fmt="int" /> over <V of="passk.bias.cfg.reps" fmt="int" /> repeats: the unbiased estimator averages <V of="passk.bias.unbiased" fmt="f4" /> against a true <V of="passk.bias.true_at" fmt="f4" />, the plug-in <V of="passk.bias.plugin" fmt="f4" />. In the chart, the dashed plug-in curve sits under pass@k for every $k > 1$.
 
@@ -58,3 +62,74 @@ return 1.0 - prod;
 - [Agent Orchestration Explained: reliability](https://agent-orchestration-explained.vercel.app/learn/07-reliability): why success decays over the steps of one run, the other half of reliability.
 
 </Callout>
+
+<CheckYourself>
+
+<Check
+  id="ev03-q1"
+  n={1}
+  input="slider"
+  min={0}
+  max={100}
+  step={0.1}
+  of="pk.10.pass_at_k"
+  fmt="pct1"
+  abs={5}
+  q="pass@1 is about 46%. What is pass@10 for the same 30 tasks?"
+  href="#ev-apart"
+  more="How they pull apart"
+>
+  Any one of ten tries passing is far likelier than one try. The generator's
+  true value for these tasks is <V of="pk.10.true_at" fmt="pct1" />.
+</Check>
+
+<Check
+  id="ev03-q2"
+  n={2}
+  input="slider"
+  min={0}
+  max={100}
+  step={0.1}
+  of="pk.10.pass_hat_k"
+  fmt="pct1"
+  abs={5}
+  q="And pass^10, all ten tries passing?"
+  href="#ev-apart"
+  more="How they pull apart"
+>
+  It is carried only by the tasks that always pass. The same agent is
+  "<V of="pk.10.pass_at_k" fmt="pct" /> at ten tries" and
+  "<V of="pk.10.pass_hat_k" fmt="pct" /> reliable over ten tries".
+</Check>
+
+<Check
+  id="ev03-q3"
+  n={3}
+  choices={["Biased low", "Unbiased", "Biased high"]}
+  answer={0}
+  q="The shortcut 1 − (1 − c/n)^k for pass@k is:"
+  href="#ev-plugin"
+  more="The plug-in shortcut"
+>
+  Biased low, by Jensen's inequality. On the engine's test task it averages
+  <V of="passk.bias.plugin" fmt="f4" /> against a true
+  <V of="passk.bias.true_at" fmt="f4" />; the unbiased estimator gives
+  <V of="passk.bias.unbiased" fmt="f4" />.
+</Check>
+
+</CheckYourself>
+
+<Remember>
+
+- pass@k: does some one of k tries pass? Right when something picks the good attempt.
+- pass^k: do all k tries pass? Right when a user needs it to work every time.
+- They agree at k = 1 and pull apart fast; report the one that matches how the agent is used.
+- Use the unbiased estimators over all n samples; the plug-in shortcut is biased low.
+
+<Keep>
+  At k = 10: pass@k <V of="pk.10.pass_at_k" fmt="pct1" />, pass^k
+  <V of="pk.10.pass_hat_k" fmt="pct1" />, from one pass@1 of
+  <V of="pk.1.pass_at_k" fmt="pct1" />.
+</Keep>
+
+</Remember>

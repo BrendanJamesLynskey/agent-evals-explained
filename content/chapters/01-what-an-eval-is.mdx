@@ -9,7 +9,11 @@
 
 An **eval** has four parts. A set of **tasks** (a benchmark); an **agent** that attempts each one, perhaps several times (**runs**); a **grader** that turns each attempt into pass or fail (a test suite, a checker, a judge); and a **score**, usually the fraction of runs that pass. The score is a measurement, and like any measurement it comes with an error bar. This site is about that error bar: where it comes from, how big it is, and how to make it smaller.
 
+<span id="ev-loop" />
+
 The animation grades <V of="loopx.runs" fmt="int" /> runs one at a time: <V of="consts.loop.tasks" fmt="int" /> tasks drawn from a synthetic population, each run <V of="consts.loop.runs" fmt="int" /> times. After the first run of every task the score is <V of="loopx.round1.p" fmt="pct1" />, and the 95% band that treats every run as independent (Wilson's interval, filled) is <V of="loopx.round1.wilson_width" fmt="pct1" /> wide. Two more rounds of runs triple the data and that band narrows to <V of="loopx.round3.wilson_width" fmt="pct1" />.
+
+<span id="ev-cluster" />
 
 The band that treats **tasks** as the unit (dashed) hardly moves: <V of="loopx.round1.cluster_width" fmt="pct1" /> after one run of each task, <V of="loopx.round3.cluster_width" fmt="pct1" /> after three. The reason is that the runs on one task are not independent: a task that is easy for this agent passes again and again, and a hard one keeps failing. Running the same 40 tasks three times tells you a lot about those 40 tasks and little more about the next 40. The uncertainty that matters, how the agent would do on tasks like these, is dominated by **which tasks** you happened to pick.
 
@@ -26,6 +30,8 @@ The task population (difficulty and discrimination drawn from a seed), the agent
 <Layer kind="maths">
 
 With $N$ runs of which $\hat p N$ pass, the binomial standard error $\sqrt{\hat p(1-\hat p)/N}$ assumes the runs are independent draws. When each of $T$ tasks is run $m_t$ times with $S_t$ passes, the runs cluster by task. The **cluster-robust** (CR1) standard error treats each task's total as one observation: its residual $S_t - m_t\hat p$ is squared and summed, with the small-sample factor $T/(T-1)$. The engine's tests check it against statsmodels' OLS with cluster-robust covariance.
+
+<span id="ev-design-effect" />
 
 The ratio of the two variances is the **design effect**. For clusters of $m$ runs with intra-class correlation $\rho_{\text{ICC}}$ it is Kish's $1 + (m-1)\rho_{\text{ICC}}$; here, after three runs of each task, it is <V of="loopx.design_effect" fmt="f2" />, so the 120 runs carry about as much information as <V of="loopx.design_effect" fmt="f2" /> times fewer independent ones. The ICC here is more than the generator's $\rho$, because task difficulty also makes runs on one task alike. [Miller (2024)](https://arxiv.org/abs/2411.00640) makes the same recommendation for language-model evals: when questions come in groups, or are asked more than once, compute clustered standard errors.
 
@@ -55,3 +61,69 @@ const se = t > 1 ? Math.sqrt((t / (t - 1)) * acc) / n : naive;
 - The [LLM Hub: Agents](https://brendanjameslynskey.github.io/LLM_Hub_Agents/) decks.
 
 </Callout>
+
+<CheckYourself>
+
+<Check
+  id="ev01-q1"
+  n={1}
+  input="slider"
+  min={0}
+  max={40}
+  step={0.1}
+  of="loopx.round3.cluster_width"
+  fmt="pct1"
+  abs={3}
+  q="After three runs of each of the 40 tasks, how wide is the 95% band that treats tasks as the unit?"
+  href="#ev-cluster"
+  more="Tasks, not runs"
+>
+  Barely narrower than after one run (<V of="loopx.round1.cluster_width" fmt="pct1" />),
+  while the band that counts runs as independent shrank to
+  <V of="loopx.round3.wilson_width" fmt="pct1" />. Runs on one task are alike:
+  three runs of the same 40 tasks say little more about the next 40.
+</Check>
+
+<Check
+  id="ev01-q2"
+  n={2}
+  input="number"
+  of="loopx.design_effect"
+  fmt="f2"
+  q="What is the design effect after three runs of each task: the task-unit variance over the independent-runs variance?"
+  href="#ev-design-effect"
+  more="The design effect"
+>
+  The 120 runs carry about as much information as that many times fewer
+  independent ones. Kish's $1 + (m - 1)\rho_{\text{ICC}}$: task difficulty makes
+  runs on one task alike, on top of the generator's $\rho$.
+</Check>
+
+<Check
+  id="ev01-q3"
+  n={3}
+  choices={["More runs of the same tasks", "More tasks"]}
+  answer={1}
+  q="You want a tighter estimate of how the agent does on tasks like these. What should you buy?"
+  href="#ev-cluster"
+  more="Tasks, not runs"
+>
+  More tasks. The uncertainty that matters is dominated by which tasks you
+  happened to pick; extra runs mostly re-measure the same tasks.
+</Check>
+
+</CheckYourself>
+
+<Remember>
+
+- An eval is tasks, an agent, a grader and a score; the score is a measurement with an error bar.
+- Runs on one task are correlated: count tasks, not runs, as the unit.
+- The cluster-robust standard error does that; the binomial one, applied to runs, claims precision the data do not have.
+- The design effect says how many times fewer independent runs your runs are worth.
+
+<Keep>
+  Here the design effect is <V of="loopx.design_effect" fmt="f2" />: three runs
+  of 40 tasks are worth about <V v="ch01.effectiveRuns" fmt="num" /> independent ones.
+</Keep>
+
+</Remember>

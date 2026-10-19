@@ -11,7 +11,11 @@ A benchmark measures what a model can do with problems it has not seen. If its t
 
 The animation simulates it. <V of="consts.contam.tasks" fmt="int" /> synthetic tasks each have a creation date (a quarter, 0 to 7) and a text; the model's training data stops after quarter <V of="ct.cutoff_q" fmt="int" />. At a leak rate $L$, each task from before the cutoff is in the training data with probability $L$, as a verbatim copy or (<V of="consts.contam.paraphrase" fmt="pct" /> of the time) a paraphrase; a leaked task is answered from memory with probability <V of="consts.contam.memorise" fmt="num" />.
 
+<span id="ev-inflation" />
+
 **What it does to the score.** The agent's clean score is <V of="ct.0.00.rate" fmt="pct1" />. At a <V of="ct.0.30.leak" fmt="pct" /> leak rate, <V of="ct.0.30.leaked" fmt="int" /> tasks have leaked and it scores <V of="ct.0.30.rate" fmt="pct1" />; at <V of="ct.0.60.leak" fmt="pct" />, <V of="ct.0.60.rate" fmt="pct1" />. Nothing about the agent changed.
+
+<span id="ev-detect" />
 
 **Three ways to look for it, each seeing part.**
 
@@ -32,6 +36,8 @@ The tasks' "texts" are random token ids, not language, and the leak, paraphrase,
 <Layer kind="maths">
 
 **Inflation.** If a fraction $f$ of the benchmark leaked and a leaked task is recalled with probability $m$, a task with pass probability $\mu$ now passes with probability $\mu + (1 - \mu)m$, so the expected score rises by $m\,f\,\overline{(1 - \mu)}_{\text{leaked}}$: most for hard tasks, which is where a benchmark is supposed to discriminate.
+
+<span id="ev-ngram-maths" />
 
 **Why n-grams miss paraphrases.** If each token of a copy is changed independently with probability $r$, a particular $n$-gram survives intact with probability $(1 - r)^n$; with $r$ = <V of="consts.contam.mutate" fmt="num" /> and $n$ = <V of="consts.contam.ngram" fmt="int" />, <V of="ct.survive" fmt="f3" />. A detector that needs half of a task's $n$-grams to match will almost never fire. Shorter $n$-grams survive more often but also match by chance more often; the threshold trades one error for the other.
 
@@ -62,3 +68,69 @@ const p = lk ? t.mu + (1.0 - t.mu) * cfg.memorise : t.mu;
 - [Papers 07: What to Take Away](https://brendanjameslynskey.github.io/Papers_07_Evaluation_and_Benchmarks/#slide-06): saturation and contamination, and why to quote the training cutoff with a score.
 
 </Callout>
+
+<CheckYourself>
+
+<Check
+  id="ev09-q1"
+  n={1}
+  input="slider"
+  min={0}
+  max={100}
+  step={0.1}
+  of="ct.0.30.rate"
+  fmt="pct1"
+  abs={3}
+  q="The agent's clean score is about 48%. At a 30% leak rate, what does it score?"
+  href="#ev-inflation"
+  more="What leaking does"
+>
+  <V of="ct.0.30.leaked" fmt="int" /> tasks leaked, and a leaked task is
+  answered from memory most of the time. Nothing about the agent changed.
+</Check>
+
+<Check
+  id="ev09-q2"
+  n={2}
+  input="number"
+  of="ct.0.30.flagged_paraphrased"
+  fmt="int"
+  abs={1}
+  q="At a 30% leak rate, 21 tasks leaked as paraphrases. How many does the 8-gram overlap check flag?"
+  href="#ev-detect"
+  more="Three detectors"
+>
+  None, though it finds every verbatim leak
+  (<V of="ct.0.30.flagged_verbatim" fmt="int" /> of <V of="ct.0.30.verbatim" fmt="int" />).
+  A paraphrase changes enough words to break almost every 8-gram.
+</Check>
+
+<Check
+  id="ev09-q3"
+  n={3}
+  input="number"
+  of="ct.survive"
+  fmt="f3"
+  q="If a paraphrase changes each token with probability 0.25, what share of 8-grams survive intact? (to three decimals)"
+  href="#ev-ngram-maths"
+  more="Why n-grams miss paraphrases"
+>
+  $(1 - r)^n = 0.75^8$: shorter n-grams survive more often but also match by
+  chance more often.
+</Check>
+
+</CheckYourself>
+
+<Remember>
+
+- Contamination turns part of a score into memory; public benchmarks leak.
+- n-gram overlap finds verbatim copies and misses paraphrases.
+- A canary string says a benchmark leaked, not which tasks or how much.
+- A time split compares tasks before and after the training cut-off; small leaks on small benchmarks go unseen.
+
+<Keep>
+  The safest defence is design: unpublished hold-out tasks, fresh tasks, and
+  scores reported with the dates of the tasks and the training data.
+</Keep>
+
+</Remember>

@@ -11,13 +11,19 @@ Every score in the earlier chapters came from a **grader**, and so far the grade
 
 Zheng et al. measured three of those errors in GPT-4 as a judge. **Position bias**: it prefers whichever answer it reads first (or second). **Verbosity bias**: it prefers the longer answer. **Self-preference**: it prefers answers written by its own model family. The animation simulates a judge that has a chosen mix of the three, on <V of="consts.judge.pairs" fmt="int" /> pairs of responses whose true quality is known (and called a tie when the two are within <V of="consts.judge.tie_band" fmt="num" /> of each other, as a careful human might).
 
+<span id="ev-swap" />
+
 **The swap test.** Show every pair twice, once in each order. A fair judge's two verdicts disagree only through its own noise: here in <V of="jd.fair.flipped" fmt="pct1" /> of pairs. Give it a position bias of <V of="consts.judge.settings.position.position" fmt="num" /> and the share of verdicts that go to whichever answer came first rises from <V of="jd.fair.first_share" fmt="pct1" /> to <V of="jd.position.first_share" fmt="pct1" />, and the two orders disagree on <V of="jd.position.flipped" fmt="pct1" /> of pairs. The standard fix keeps a verdict only when both orders agree and calls the rest a tie. That removes the position effect exactly: of the verdicts it keeps, <V of="jd.position.accuracy_decided" fmt="pct1" /> are right, against <V of="jd.position.accuracy1" fmt="pct1" /> for one order. It cannot put back what the bias destroyed, though: it keeps only <V of="jd.position.decided" fmt="pct1" /> of the pairs, and Cohen's κ against the truth stays at <V of="jd.position.kd" fmt="f2" /> (one order: <V of="jd.position.k1" fmt="f2" />; the fair judge: <V of="jd.fair.k1" fmt="f2" />).
+
+<span id="ev-cannot" />
 
 **What swapping cannot fix.** Length and family do not move when the order does. With a length bias of <V of="consts.judge.settings.verbosity.verbosity" fmt="num" />, the judge gets <V of="jd.verbosity.long_worse.acc1" fmt="pct1" /> of the <V of="jd.verbosity.long_worse.n" fmt="int" /> pairs where the longer answer is the worse one right (the fair judge: <V of="jd.fair.long_worse.acc1" fmt="pct1" />), and both orders agree on <V of="jd.verbosity.consistency" fmt="pct1" /> of pairs, so the swap test does not even see the bias. With self-preference, it gets <V of="jd.self.own_worse.acc1" fmt="pct1" /> of the pairs where its own family wrote the worse answer right. These need other fixes: length-controlled comparisons, a judge from another family, and above all a check against people.
 
 **κ, not accuracy.** Two graders that both say "A" most of the time agree a lot by chance. Cohen's κ subtracts the agreement their label frequencies would give by chance ($p_e$) from the agreement observed ($p_o$) and rescales: 1 is perfect, 0 is chance. It is the number to quote when you validate a judge against human labels.
 
 <CorrectionChart />
+
+<span id="ev-correction" />
 
 **Pass/fail judges and the correction.** The second chart is the most common use: a judge reads each transcript and says pass or fail. If it passes a true pass with probability Se (sensitivity, <V of="consts.grading.se" fmt="num" /> here) and a true fail with probability 1 − Sp (Sp, specificity, <V of="consts.grading.sp" fmt="num" />), it reports $\pi\,\text{Se} + (1-\pi)(1-\text{Sp})$ for an agent whose true rate is $\pi$: a lenient judge flatters weak agents most. On <V of="consts.grading.tasks" fmt="int" /> tasks, an agent the unit tests put at <V of="gr.tests_rate" fmt="pct1" /> gets <V of="gr.judge_rate" fmt="pct1" /> from the judge (κ = <V of="gr.kappa" fmt="f2" />). Label <V of="gr.calibration.n" fmt="int" /> tasks both ways, estimate Se and Sp from them, and invert the formula: the corrected estimate is <V of="gr.corrected.corrected" fmt="pct1" />, 95% interval <V of="gr.corrected.ci.0" fmt="pct1" /> to <V of="gr.corrected.ci.1" fmt="pct1" />. The interval is wider than a perfect grader's would be, because the calibration set's own error is in it.
 
@@ -83,3 +89,79 @@ const v2 = u2 < pBa ? "B" : "A";
 - [Agent Context Explained](https://agent-context-explained.vercel.app): grading retrieval with recall and nDCG, where the labels come from answer spans rather than a judge.
 
 </Callout>
+
+<CheckYourself>
+
+<Check
+  id="ev06-q1"
+  n={1}
+  input="slider"
+  min={0}
+  max={100}
+  step={0.1}
+  of="jd.position.first_share"
+  fmt="pct1"
+  abs={5}
+  q="Give the judge a position bias. What share of its verdicts go to whichever answer came first?"
+  href="#ev-swap"
+  more="The swap test"
+>
+  Up from <V of="jd.fair.first_share" fmt="pct1" /> for a fair judge, and the
+  two orders now disagree on <V of="jd.position.flipped" fmt="pct1" /> of
+  pairs.
+</Check>
+
+<Check
+  id="ev06-q2"
+  n={2}
+  choices={[
+    "Position, length and family bias",
+    "Position bias only",
+    "Length bias only",
+  ]}
+  answer={1}
+  q="Showing each pair in both orders and keeping only agreeing verdicts removes which bias?"
+  href="#ev-cannot"
+  more="What swapping cannot fix"
+>
+  Position only: length and family do not move when the order does. The
+  length-biased judge agrees with itself on
+  <V of="jd.verbosity.consistency" fmt="pct1" /> of pairs, so the swap test
+  does not even see it.
+</Check>
+
+<Check
+  id="ev06-q3"
+  n={3}
+  input="slider"
+  min={0}
+  max={100}
+  step={0.1}
+  of="gr.judge_rate"
+  fmt="pct1"
+  abs={5}
+  q="The unit tests put the agent at about 41%. A lenient pass/fail judge (high sensitivity, specificity 0.7) reports what?"
+  href="#ev-correction"
+  more="Correcting a pass/fail judge"
+>
+  A lenient judge flatters weak agents most. Estimating its sensitivity and
+  specificity on a labelled set and inverting the formula gives
+  <V of="gr.corrected.corrected" fmt="pct1" />, with a wider interval.
+</Check>
+
+</CheckYourself>
+
+<Remember>
+
+- An LLM judge is an instrument with errors: position, verbosity and self-preference bias.
+- The swap test removes position bias exactly, and sees nothing else.
+- Validate a judge against people with Cohen's κ, not raw agreement.
+- A pass/fail judge's rate can be corrected from its sensitivity and specificity, at the cost of a wider interval.
+
+<Keep>
+  Reported = π·Se + (1 − π)(1 − Sp): here a true
+  <V of="gr.tests_rate" fmt="pct1" /> is reported as
+  <V of="gr.judge_rate" fmt="pct1" />.
+</Keep>
+
+</Remember>
